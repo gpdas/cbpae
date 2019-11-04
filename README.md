@@ -9,11 +9,12 @@ A multi-robot task allocation (MRTA) algorithm for ST-SR-IA with
 
 Each robot is contained in a separate process and the robots communicate using inter-process communication (implemented with a centralised communciation manager).
 
-Originally used with 
-  * Abstract robot for Monte-Carlo simulations
-  * ~Pioneer3-Dx robot simulated in Stage controlled using Player~ (deprecated)
-  * ~Physical Pioneer3-Dx robot controlled using Player~ (deprecated) 
-  * ~Physical Pioneer3-Dx robot controlled using ROS~ (deprecated)
+The robots are defined as an abstract type for Monte-Carlo simulations
+
+Although not included, this abstract class was originally extended to work with  
+  * Pioneer3-Dx robot simulated in Stage controlled using Player
+  * Physical Pioneer3-Dx robot controlled using Player 
+  * Physical Pioneer3-Dx robot controlled using ROS
 
 A sample input data file for the experiment in `data/testing_inData.dat` (this is a simple text file).
 
