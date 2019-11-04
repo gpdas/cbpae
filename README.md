@@ -11,9 +11,9 @@ Each robot is contained in a separate process and the robots communicate using i
 
 Originally used with 
   * Abstract robot for Monte-Carlo simulations
-  * Pioneer3-Dx robot simulated in Stage controlled using Player (deprecated)
-  * Physical Pioneer3-Dx robot controlled using Player (deprecated) 
-  * Physical Pioneer3-Dx robot controlled using ROS (deprecated)
+  * ~Pioneer3-Dx robot simulated in Stage controlled using Player~ (deprecated)
+  * ~Physical Pioneer3-Dx robot controlled using Player~ (deprecated) 
+  * ~Physical Pioneer3-Dx robot controlled using ROS~ (deprecated)
 
 A sample input data file for the experiment in `data/testing_inData.dat` (this is a simple text file).
 
