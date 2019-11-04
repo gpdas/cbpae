@@ -11,7 +11,7 @@ Each robot is contained in a separate process and the robots communicate using i
 
 The robots are defined as an abstract type for Monte-Carlo simulations
 
-Although not included, this abstract class was originally extended to work with  
+Although now deprecated and not included, this abstract class was originally extended to work with  
   * Pioneer3-Dx robot simulated in Stage controlled using Player
   * Physical Pioneer3-Dx robot controlled using Player 
   * Physical Pioneer3-Dx robot controlled using ROS
