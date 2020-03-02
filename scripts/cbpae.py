@@ -57,7 +57,6 @@ class Cbpae():
         """
 
         self.version = VERSION
-        self.plots = plotsDir
         self.logs = logsDir
         self.fNameSmall = fName.split("/")[-1].split("\\")[-1]
 
@@ -198,7 +197,7 @@ class Cbpae():
         # Combined Logging
         #===============================================================
         if (LOGGING):
-            logFile = open(os.path.join(logsDir, self.fNameSmall + "_cbpae.log"), "w")
+            logFile = open(os.path.join(self.logs, self.fNameSmall + "_cbpae.log"), "w")
             print >>logFile, ("--basic info: start--")
             print >>logFile, ("%0.3f, %0.3f, %0.3f, %0.3f" %(self.mapInfo.xMin, self.mapInfo.xMax, self.mapInfo.yMin, self.mapInfo.yMax))
             print >>logFile, ("robots, %d" %(self.nRobot))
@@ -1200,9 +1199,9 @@ class Cbpae():
         spfig3.set_title("Robot Bid Time and Bid Value")
         spfig3.grid(False)
 
-        fig1.savefig(os.path.join(self.plots, string.join((fNameSmall, "path", "cbpae", self.version+".png"), "_")))
-        fig2.savefig(os.path.join(self.plots, string.join((fNameSmall, "exec_time", "cbpae", self.version+".png"), "_")))
-        fig3.savefig(os.path.join(self.plots, string.join((fNameSmall, "bid_time_val", "cbpae", self.version+".png"), "_")))
+        fig1.savefig(os.path.join(plotsDir, string.join((fNameSmall, "path", "cbpae", self.version+".png"), "_")))
+        fig2.savefig(os.path.join(plotsDir, string.join((fNameSmall, "exec_time", "cbpae", self.version+".png"), "_")))
+        fig3.savefig(os.path.join(plotsDir, string.join((fNameSmall, "bid_time_val", "cbpae", self.version+".png"), "_")))
 
 #        matplotlib.pyplot.show()
 
