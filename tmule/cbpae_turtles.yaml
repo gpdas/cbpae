@@ -1,7 +1,7 @@
 ---
 session: cbpae_turtles
 init_cmd: |
-  exec /bin/bash
+  # exec /bin/bash
   cd @TMULE_COFIG_DIR@ || true
   set -o pipefail
   function export_default () {

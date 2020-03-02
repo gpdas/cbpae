@@ -6,8 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /tb_001
-        - /tb_011
+        - /robot_001
+        - /robot_011
       Splitter Ratio: 0.6352941393852234
     Tree Height: 550
   - Class: rviz/Selection
@@ -71,37 +71,37 @@ Visualization Manager:
         All Enabled: true
         map:
           Value: true
-        tb_00/base_footprint:
+        robot_00/base_footprint:
           Value: true
-        tb_00/base_link:
+        robot_00/base_link:
           Value: true
-        tb_00/base_scan:
+        robot_00/base_scan:
           Value: true
-        tb_00/caster_back_link:
+        robot_00/caster_back_link:
           Value: true
-        tb_00/imu_link:
+        robot_00/imu_link:
           Value: true
-        tb_00/odom:
+        robot_00/odom:
           Value: true
-        tb_00/wheel_left_link:
+        robot_00/wheel_left_link:
           Value: true
-        tb_00/wheel_right_link:
+        robot_00/wheel_right_link:
           Value: true
-        tb_01/base_footprint:
+        robot_01/base_footprint:
           Value: true
-        tb_01/base_link:
+        robot_01/base_link:
           Value: true
-        tb_01/base_scan:
+        robot_01/base_scan:
           Value: true
-        tb_01/caster_back_link:
+        robot_01/caster_back_link:
           Value: true
-        tb_01/imu_link:
+        robot_01/imu_link:
           Value: true
-        tb_01/odom:
+        robot_01/odom:
           Value: true
-        tb_01/wheel_left_link:
+        robot_01/wheel_left_link:
           Value: true
-        tb_01/wheel_right_link:
+        robot_01/wheel_right_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -110,31 +110,31 @@ Visualization Manager:
       Show Names: true
       Tree:
         map:
-          tb_00/odom:
-            tb_00/base_footprint:
-              tb_00/base_link:
-                tb_00/base_scan:
+          robot_00/odom:
+            robot_00/base_footprint:
+              robot_00/base_link:
+                robot_00/base_scan:
                   {}
-                tb_00/caster_back_link:
+                robot_00/caster_back_link:
                   {}
-                tb_00/imu_link:
+                robot_00/imu_link:
                   {}
-                tb_00/wheel_left_link:
+                robot_00/wheel_left_link:
                   {}
-                tb_00/wheel_right_link:
+                robot_00/wheel_right_link:
                   {}
-          tb_01/odom:
-            tb_01/base_footprint:
-              tb_01/base_link:
-                tb_01/base_scan:
+          robot_01/odom:
+            robot_01/base_footprint:
+              robot_01/base_link:
+                robot_01/base_scan:
                   {}
-                tb_01/caster_back_link:
+                robot_01/caster_back_link:
                   {}
-                tb_01/imu_link:
+                robot_01/imu_link:
                   {}
-                tb_01/wheel_left_link:
+                robot_01/wheel_left_link:
                   {}
-                tb_01/wheel_right_link:
+                robot_01/wheel_right_link:
                   {}
       Update Interval: 0
       Value: true
@@ -184,8 +184,8 @@ Visualization Manager:
               Show Trail: false
               Value: true
           Name: robot_model
-          Robot Description: tb_00/robot_description
-          TF Prefix: tb_00
+          Robot Description: robot_00/robot_description
+          TF Prefix: robot_00
           Update Interval: 0
           Value: true
           Visual Enabled: true
@@ -195,23 +195,23 @@ Visualization Manager:
           Axes Radius: 0.009999999776482582
           Class: rviz/PoseArray
           Color: 255; 25; 0
-          Enabled: false
+          Enabled: true
           Head Length: 0.07000000029802322
           Head Radius: 0.029999999329447746
           Name: pose
           Shaft Length: 0.23000000417232513
           Shaft Radius: 0.009999999776482582
           Shape: Arrow (Flat)
-          Topic: /tb_00/particlecloud
+          Topic: /robot_00/particlecloud
           Unreliable: false
-          Value: false
+          Value: true
         - Alpha: 0.699999988079071
           Class: rviz/Map
           Color Scheme: costmap
           Draw Behind: false
           Enabled: true
           Name: global_costmap
-          Topic: /tb_00/move_base/global_costmap/costmap
+          Topic: /robot_00/move_base/global_costmap/costmap
           Unreliable: false
           Use Timestamp: false
           Value: true
@@ -221,7 +221,7 @@ Visualization Manager:
           Draw Behind: false
           Enabled: true
           Name: local_costmap
-          Topic: /tb_00/move_base/local_costmap/costmap
+          Topic: /robot_00/move_base/local_costmap/costmap
           Unreliable: false
           Use Timestamp: false
           Value: true
@@ -245,7 +245,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /tb_00/move_base/DWAPlannerROS/global_plan
+          Topic: /robot_00/move_base/DWAPlannerROS/global_plan
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -268,11 +268,11 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /tb_00/move_base/DWAPlannerROS/local_plan
+          Topic: /robot_00/move_base/DWAPlannerROS/global_plan
           Unreliable: false
           Value: true
       Enabled: true
-      Name: tb_00
+      Name: robot_00
     - Class: rviz/Group
       Displays:
         - Alpha: 1
@@ -319,8 +319,8 @@ Visualization Manager:
               Show Trail: false
               Value: true
           Name: robot_model
-          Robot Description: tb_01/robot_description
-          TF Prefix: tb_01
+          Robot Description: robot_01/robot_description
+          TF Prefix: robot_01
           Update Interval: 0
           Value: true
           Visual Enabled: true
@@ -330,23 +330,23 @@ Visualization Manager:
           Axes Radius: 0.009999999776482582
           Class: rviz/PoseArray
           Color: 255; 25; 0
-          Enabled: false
+          Enabled: true
           Head Length: 0.07000000029802322
           Head Radius: 0.029999999329447746
           Name: pose
           Shaft Length: 0.23000000417232513
           Shaft Radius: 0.009999999776482582
           Shape: Arrow (Flat)
-          Topic: /tb_01/particlecloud
+          Topic: /robot_01/particlecloud
           Unreliable: false
-          Value: false
+          Value: true
         - Alpha: 0.699999988079071
           Class: rviz/Map
           Color Scheme: costmap
           Draw Behind: false
           Enabled: true
           Name: global_costmap
-          Topic: /tb_01/move_base/global_costmap/costmap
+          Topic: /robot_01/move_base/global_costmap/costmap
           Unreliable: false
           Use Timestamp: false
           Value: true
@@ -356,7 +356,7 @@ Visualization Manager:
           Draw Behind: false
           Enabled: true
           Name: local_costmap
-          Topic: /tb_01/move_base/local_costmap/costmap
+          Topic: /robot_01/move_base/local_costmap/costmap
           Unreliable: false
           Use Timestamp: false
           Value: true
@@ -380,7 +380,7 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /tb_01/move_base/DWAPlannerROS/global_plan
+          Topic: /robot_01/move_base/DWAPlannerROS/global_plan
           Unreliable: false
           Value: true
         - Alpha: 1
@@ -403,11 +403,11 @@ Visualization Manager:
           Radius: 0.029999999329447746
           Shaft Diameter: 0.10000000149011612
           Shaft Length: 0.10000000149011612
-          Topic: /tb_01/move_base/DWAPlannerROS/local_plan
+          Topic: /robot_01/move_base/DWAPlannerROS/local_plan
           Unreliable: false
           Value: true
       Enabled: true
-      Name: tb_01
+      Name: robot_01
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -445,11 +445,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 19.810789108276367
+      Scale: 34.91337966918945
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: -0.22884288430213928
-      Y: -1.2024916410446167
+      X: -0.06844589114189148
+      Y: -0.14387176930904388
     Saved: ~
 Window Geometry:
   Displays:
@@ -457,7 +457,7 @@ Window Geometry:
   Height: 1016
   Hide Left Dock: false
   Hide Right Dock: true
-  QMainWindow State: 000000ff00000000fd0000000400000000000001560000035afc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000002b1000000c900fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007301000002f4000000a30000005c00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f0000035afc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d0000035a000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000003ab0000003efc0100000002fb0000000800540069006d00650100000000000003ab000002eb00fffffffb0000000800540069006d006501000000000000045000000000000000000000024f0000035a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000002640000035afc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000002b1000000c900fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007301000002f4000000a30000005c00fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f0000035afc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d0000035a000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007550000003efc0100000002fb0000000800540069006d0065010000000000000755000002eb00fffffffb0000000800540069006d00650100000000000004500000000000000000000004eb0000035a00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -466,6 +466,6 @@ Window Geometry:
     collapsed: false
   Views:
     collapsed: true
-  Width: 939
-  X: 86
+  Width: 1877
+  X: 43
   Y: 27
