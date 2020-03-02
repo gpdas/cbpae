@@ -19,18 +19,18 @@ windows:
   - roscore
 - name: gazebo
   panes:
-  - roslaunch cbpae_ros bringup_gazebo.launch
-  - roslaunch cbpae_ros bringup_turtlebot3_multi.launch robot_name:="tb_00" initial_pose_x:=0.0 initial_pose_y:=0.0 initial_pose_Y:=0.0
-  - roslaunch cbpae_ros bringup_turtlebot3_multi.launch robot_name:="tb_01" initial_pose_x:=0.0 initial_pose_y:=1.0 initial_pose_Y:=0.0
+  - roslaunch cbpae bringup_gazebo.launch
+  - roslaunch cbpae bringup_turtlebot3_multi.launch robot_name:="robot_00" initial_pose_x:=0.0 initial_pose_y:=0.0 initial_pose_Y:=0.0
+  - roslaunch cbpae bringup_turtlebot3_multi.launch robot_name:="robot_01" initial_pose_x:=0.0 initial_pose_y:=1.0 initial_pose_Y:=0.0
 - name: 2Dloc
   panes:
-  - rosrun map_server map_server $(rospack find cbpae_ros)/maps/open_field.yaml
-  - roslaunch cbpae_ros turtlebot3_localisation_multi.launch robot_name:="tb_00" initial_pose_x:=0.0 initial_pose_y:=0.0 initial_pose_Y:=0.0
-  - roslaunch cbpae_ros turtlebot3_localisation_multi.launch robot_name:="tb_01" initial_pose_x:=0.0 initial_pose_y:=1.0 initial_pose_Y:=0.0
+  - rosrun map_server map_server $(rospack find cbpae)/maps/open_field.yaml
+  - roslaunch cbpae turtlebot3_localisation_multi.launch robot_name:="robot_00" initial_pose_x:=0.0 initial_pose_y:=0.0 initial_pose_Y:=0.0
+  - roslaunch cbpae turtlebot3_localisation_multi.launch robot_name:="robot_01" initial_pose_x:=0.0 initial_pose_y:=1.0 initial_pose_Y:=0.0
 - name: navig
   panes:
-  - roslaunch cbpae_ros turtlebot3_navigation_multi.launch robot_name:="tb_00"
-  - roslaunch cbpae_ros turtlebot3_navigation_multi.launch robot_name:="tb_01"
+  - roslaunch cbpae turtlebot3_navigation_multi.launch robot_name:="robot_00"
+  - roslaunch cbpae turtlebot3_navigation_multi.launch robot_name:="robot_01"
 - name: rviz
   panes:
-  - rosrun rviz rviz -d $(rospack find cbpae_ros)/rviz/cbpae_turtles.rviz
+  - rosrun rviz rviz -d $(rospack find cbpae)/rviz/cbpae_turtles.rviz

@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <launch>
-  <arg name="world_name" default="$(find cbpae_ros)/worlds/open_field.world" />
+  <arg name="world_name" default="$(find cbpae)/worlds/open_field.world" />
   <arg name="paused" default="false" />
   <arg name="use_sim_time" default="true" />
   <arg name="gui" default="true" />

@@ -17,12 +17,12 @@
   <!-- move_base -->
     <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
       <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
-      <rosparam file="$(find cbpae_ros)/params/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap" />
-      <rosparam file="$(find cbpae_ros)/params/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap" />
-      <rosparam file="$(find cbpae_ros)/params/local_costmap_params.yaml" command="load" />
-      <rosparam file="$(find cbpae_ros)/params/global_costmap_params.yaml" command="load" />
-      <rosparam file="$(find cbpae_ros)/params/move_base_params.yaml" command="load" />
-      <rosparam file="$(find cbpae_ros)/params/dwa_local_planner_params_$(arg model).yaml" command="load" />
+      <rosparam file="$(find cbpae)/params/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find cbpae)/params/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find cbpae)/params/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/params/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/params/move_base_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/params/dwa_local_planner_params_$(arg model).yaml" command="load" />
       <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
     </node>
 

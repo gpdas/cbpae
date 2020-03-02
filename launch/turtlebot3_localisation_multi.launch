@@ -11,7 +11,7 @@
   <group ns="$(arg robot_name)">
     <remap from="map" to="/map" />
     <!-- AMCL -->
-    <include file="$(find cbpae_ros)/launch/amcl.launch">
+    <include file="$(find cbpae)/launch/amcl.launch">
       <arg name="odom_frame_id" value="$(arg robot_name)/odom" />
       <arg name="base_frame_id" value="$(arg robot_name)/base_footprint" />
       <arg name="global_frame_id" value="/map" />
