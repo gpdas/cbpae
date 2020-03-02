@@ -28,15 +28,16 @@
 ## ---------------------------------------------------- ##
 
 import robot
+import rosbot
 import task
 import mapData
 
-def readInData(filePrefix=""):
+def readInData(fName):
     ## Initialization phase:
     mapInfo = mapData.MapData() # map information
 
     """read from file & initialize"""
-    dataFile = open(filePrefix+"inData.dat", "r")
+    dataFile = open(fName, "r")
     dataFile.readline() # map info:
 
     dataFile.readline() # no. of rooms, no. of nodes
@@ -106,11 +107,18 @@ def readInData(filePrefix=""):
                 skills.append(rStr[idx].strip())
                 expertise.append(float(rStr[idx+1]))
 
-            # only considering "test" and ignoring "player", "playerstage" and "ros" robot types here
-            rType = "test"
+            # only considering "test" and "ros" and ignoring "player", "playerstage" types here
+#            rType = "test"
 
             rId = int(rStr[0].strip(), 10)
-            robotList[rId] = robot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
+            rType = rStr[9]
+            if rType == "test":
+                robotList[rId] = robot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
+            elif rType == "ros":
+                robotList[rId] = rosbot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
+            else:
+                # default same as for rType "test"
+                robotList[rId] = robot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
 
             # setting expertise
             robotList[rId].setExpertise(skills, expertise)

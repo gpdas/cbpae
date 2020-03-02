@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#! /usr/bin/env python
 ## ---------------------------------------------------- ##
 # file: cbpae.py
 # desc: main program for CBPAE. generates separate threads for each robot. logs and plots data.
@@ -36,9 +36,11 @@ import misc
 import gui
 import wx
 import os
+import sys
+import string
 
 ## cbpae - version
-VERSION = "05.00.02"
+VERSION = "05.01.00"
 
 ## enable/disable logging
 LOGGING = True
@@ -46,7 +48,7 @@ LOGGING = True
 
 # Consensus Based Parallel Allocation and Execution (CBPAE, Das et al., JINT 2015)
 class Cbpae():
-    def __init__(self, filePrefix="", dataDir="../data/", logsDir="../logs/"):
+    def __init__(self, fName, logsDir):
         """consensus based parallel auction and execution.
         creates a list of robot processes(robotProc). each robotProc will
         handle the cbpae of a single robot. each robotProc has two
@@ -55,10 +57,9 @@ class Cbpae():
         """
 
         self.version = VERSION
-        self.data = dataDir
         self.plots = plotsDir
         self.logs = logsDir
-        self.filePrefix = filePrefix
+        self.fNameSmall = fName.split("/")[-1].split("\\")[-1]
 
         self.nRobot = 0  # number of robots
         self.nTask = 0  # number of tasks
@@ -68,7 +69,7 @@ class Cbpae():
         self.robotIds = []
         self.taskIds = []
 
-        (self.robotIds, self.robotList, self.taskIds, self.taskList, self.mapInfo) = readInData.readInData(self.data+filePrefix)
+        (self.robotIds, self.robotList, self.taskIds, self.taskList, self.mapInfo) = readInData.readInData(fName)
         self.nRobot = len(self.robotIds)
         self.nTask = len(self.taskIds)
 
@@ -197,7 +198,7 @@ class Cbpae():
         # Combined Logging
         #===============================================================
         if (LOGGING):
-            logFile = open(logsDir + self.filePrefix + "cbpae.log", "w")
+            logFile = open(os.path.join(logsDir, self.fNameSmall + "_cbpae.log"), "w")
             print >>logFile, ("--basic info: start--")
             print >>logFile, ("%0.3f, %0.3f, %0.3f, %0.3f" %(self.mapInfo.xMin, self.mapInfo.xMax, self.mapInfo.yMin, self.mapInfo.yMax))
             print >>logFile, ("robots, %d" %(self.nRobot))
@@ -724,7 +725,7 @@ class Cbpae():
         #=======================================================================
         if (LOGGING):
             print ("r[%d] starting logging" %(rIndex))
-            logFile = open(self.logs + self.filePrefix + str(rIndex) + "_" +"cbpae.log", "w")
+            logFile = open(os.path.join(self.logs, string.join((self.fNameSmall, str(rIndex), "cbpae.log"), "_")), "w")
 
             rDist = 0
             lenX = len(robot.x)
@@ -918,9 +919,11 @@ class Cbpae():
                         break
         return
 
-    def plotData(self, logsDir="../logs/", plotsDir="../plots/", filePrefix=""):
+    def plotData(self, logsDir, plotsDir, fName):
         """"read all logs. merge them to a single one. plot all data in single plot"""
         print (">>> plotting data")
+        
+        fNameSmall = fName.split("/")[-1].split("\\")[-1]
 
         class Robot():
             def __init__(self, xOrg, yOrg):
@@ -938,7 +941,7 @@ class Cbpae():
         taskList = []
         rId = []
 
-        logFile = open(logsDir + filePrefix + "cbpae.log", "r")
+        logFile = open(os.path.join(logsDir, fNameSmall + "_cbpae.log"), "r")
         logFile.readline()
         (xMin, xMax, yMin, yMax) = (float(x) for x in (logFile.readline().strip().split(",")))
 
@@ -976,15 +979,15 @@ class Cbpae():
         y = []
 
         for i in (range (nRobot)):
-            fName = open(logsDir + filePrefix + str(i) + "_" +"cbpae.log", "r")
-            rId.append(int((fName.readline().strip().split(","))[1],10))
+            fHandle = open(os.path.join(logsDir, string.join((fNameSmall, str(i), "cbpae.log"), "_")), "r")
+            rId.append(int((fHandle.readline().strip().split(","))[1],10))
 
-            timeInit.append(float((fName.readline().strip().split(","))[1]))
-            startTime.append(float((fName.readline().strip().split(","))[1]))
-            stopTime.append(float((fName.readline().strip().split(","))[1]))
-            execTime.append(float((fName.readline().strip().split(","))[1]))
+            timeInit.append(float((fHandle.readline().strip().split(","))[1]))
+            startTime.append(float((fHandle.readline().strip().split(","))[1]))
+            stopTime.append(float((fHandle.readline().strip().split(","))[1]))
+            execTime.append(float((fHandle.readline().strip().split(","))[1]))
 
-            nTaskAlloc.append(int((fName.readline().strip().split(","))[1],10))
+            nTaskAlloc.append(int((fHandle.readline().strip().split(","))[1],10))
 
             rTasks.append([])
             bidTime.append([])
@@ -998,61 +1001,61 @@ class Cbpae():
 
             if (nTaskAlloc[i] > 0):
                 nRAct.append(1)
-                tasks = fName.readline().strip().split(",")
+                tasks = fHandle.readline().strip().split(",")
                 for j in (range (1, nTaskAlloc[i]+1)):
                     rTasks[-1].append(int(tasks[j], 10))
 
-                bTime = fName.readline().strip().split(",")
+                bTime = fHandle.readline().strip().split(",")
                 for j in (range (1, nTaskAlloc[i]+1)):
                     bidTime[-1].append(float(bTime[j]))
 
-                bVal = fName.readline().strip().split(",")
+                bVal = fHandle.readline().strip().split(",")
                 for j in (range (1, nTaskAlloc[i]+1)):
                     bidVal[-1].append(float(bVal[j]))
 
-                start = fName.readline().strip().split(",")
+                start = fHandle.readline().strip().split(",")
                 for j in (range (1, nTaskAlloc[i]+1)):
                     tNavStart[-1].append(float(start[j]))
 
-                stop = fName.readline().strip().split(",")
+                stop = fHandle.readline().strip().split(",")
                 for j in (range (1, nTaskAlloc[i]+1)):
                     tNavStop[-1].append(float(stop[j]))
 
-                start = fName.readline().strip().split(",")
+                start = fHandle.readline().strip().split(",")
                 for j in (range (1, nTaskAlloc[i]+1)):
                     tExecStart[-1].append(float(start[j]))
 
-                stop = fName.readline().strip().split(",")
+                stop = fHandle.readline().strip().split(",")
                 for j in (range (1, nTaskAlloc[i]+1)):
                     tExecStop[-1].append(float(stop[j]))
 
-                numETasks = int(fName.readline().strip().split(",")[1],10)
+                numETasks = int(fHandle.readline().strip().split(",")[1],10)
                 if (numETasks > 0):
-                    eTaskList = fName.readline().strip().split(",")
+                    eTaskList = fHandle.readline().strip().split(",")
                     for j in (range (1, numETasks+1)):
                         eTasks.append(int(eTaskList[j],10))
 
-                    eTaskInitList = fName.readline().strip().split(",")
+                    eTaskInitList = fHandle.readline().strip().split(",")
                     for j in (range (1, numETasks+1)):
                         eTaskOn.append(float(eTaskInitList[j]))
 
-                    eTaskStartList = fName.readline().strip().split(",")
+                    eTaskStartList = fHandle.readline().strip().split(",")
                     for j in (range (1, numETasks+1)):
                         eTaskStart.append(float(eTaskStartList[j]))
 
-                    eTaskStopList = fName.readline().strip().split(",")
+                    eTaskStopList = fHandle.readline().strip().split(",")
                     for j in (range (1, numETasks+1)):
                         eTaskStop.append(float(eTaskStopList[j]))
                 else:
-                    fName.readline()
-                    fName.readline()
-                    fName.readline()
-                    fName.readline()
+                    fHandle.readline()
+                    fHandle.readline()
+                    fHandle.readline()
+                    fHandle.readline()
 
-                rDist.append(float(fName.readline().strip().split(",")[1]))
+                rDist.append(float(fHandle.readline().strip().split(",")[1]))
                 while (True):
                     try:
-                        xy = fName.readline().strip().split(",")
+                        xy = fHandle.readline().strip().split(",")
                     except:
                         break
                     else:
@@ -1064,7 +1067,7 @@ class Cbpae():
             else:
                 nRAct.append(0)
                 rDist.append(0)
-            fName.close()
+            fHandle.close()
 
         eTaskResponseTime = []
         eTaskExecutionTime = []
@@ -1079,7 +1082,7 @@ class Cbpae():
         else:
             avgDistAct = 0
 
-        logFile = open(logsDir + filePrefix + "cbpae.log", "a")
+        logFile = open(os.path.join(logsDir, string.join([fNameSmall,"cbpae.log"], "_")), "a")
         print >> logFile, ("--summary: start--")
         print >> logFile, ("Number of active robots = %d" %sum(nRAct))
         print >> logFile, ("Tasks assigned to each robot:")
@@ -1197,9 +1200,9 @@ class Cbpae():
         spfig3.set_title("Robot Bid Time and Bid Value")
         spfig3.grid(False)
 
-        fig1.savefig(self.plots+self.filePrefix+"path_cbpae_"+self.version+".png")
-        fig2.savefig(self.plots+self.filePrefix+"exec_time_cbpae_"+self.version+".png")
-        fig3.savefig(self.plots+self.filePrefix+"bid_time_val_cbpae_"+self.version+".png")
+        fig1.savefig(os.path.join(self.plots, string.join((fNameSmall, "path", "cbpae", self.version+".png"), "_")))
+        fig2.savefig(os.path.join(self.plots, string.join((fNameSmall, "exec_time", "cbpae", self.version+".png"), "_")))
+        fig3.savefig(os.path.join(self.plots, string.join((fNameSmall, "bid_time_val", "cbpae", self.version+".png"), "_")))
 
 #        matplotlib.pyplot.show()
 
@@ -1211,16 +1214,30 @@ class Cbpae():
 
 if (__name__ == "__main__"):
 
-    fName     = "testing_"
+    print sys.argv
+    if len(sys.argv) <= 1:
+        print "usage: cbpae.py <path_to_data_file>"
+    else:
+        fName     = sys.argv[1]
+        
+        main_dir = os.path.join(os.environ["HOME"], "cbpae")
 
-    dataDir = os.path.abspath(os.path.join(os.getcwd(), os.pardir)) + "/data/"
-    logsDir = os.path.abspath(os.path.join(os.getcwd(), os.pardir)) + "/logs/"
-    plotsDir = os.path.abspath(os.path.join(os.getcwd(), os.pardir)) + "/plots/"
-
-    test = Cbpae(fName, dataDir, logsDir)
-    test.run()
-    if (LOGGING):
-        test.plotData(logsDir, plotsDir, fName)
+        logsDir = os.path.join(main_dir, "logs")
+        plotsDir = os.path.join(main_dir, "plots")
+        
+        if not os.path.exists(main_dir):
+            os.mkdir(main_dir)
+        
+        if not os.path.exists(logsDir):
+            os.mkdir(logsDir)
+        
+        if not os.path.exists(plotsDir):
+            os.mkdir(plotsDir)
+        
+        test = Cbpae(fName, logsDir)
+        test.run()
+        if (LOGGING):
+            test.plotData(logsDir, plotsDir, fName)
 
 
 
