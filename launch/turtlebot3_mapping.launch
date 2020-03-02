@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<launch>
+  <node pkg="gmapping" name="slam_gmapping" type="slam_gmapping">
+    <param name="base_frame" value="base_footprint" />
+  </node>
+  <node pkg="tf" name="static_transform_publisher" type="static_transform_publisher" args="0 0 0.2 0 0 0 base_footprint base_scan 10"/>
+  <node pkg="rviz" name="rviz" type="rviz" args="-d $(find cbpae_turtlebot3)/rviz/single_robot_mapping.rviz" />
+</launch>
