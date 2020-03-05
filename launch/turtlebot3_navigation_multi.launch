@@ -1,0 +1,32 @@
+<?xml version="1.0" ?>
+<launch>
+  <!-- Arguments -->
+  <arg name="robot_name" default="robot_00" />
+  <arg name="model" default="burger" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="move_forward_only" default="false"/>
+
+  <group ns="$(arg robot_name)">
+    <remap from="map" to="/map" />
+
+  <!-- move_base -->
+    <node pkg="move_base" type="move_base" respawn="false" name="move_base" output="screen">
+      <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
+      <rosparam file="$(find cbpae)/params/turtlebot3/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find cbpae)/params/turtlebot3/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find cbpae)/params/turtlebot3/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/params/turtlebot3/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/params/turtlebot3/move_base_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/params/turtlebot3/dwa_local_planner_params_$(arg model).yaml" command="load" />
+      <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
+    </node>
+
+    <rosparam param="move_base/global_costmap/robot_base_frame" subst_value="True">$(arg robot_name)/base_footprint</rosparam>
+    <rosparam param="move_base/local_costmap/robot_base_frame" subst_value="True">$(arg robot_name)/base_footprint</rosparam>
+    <rosparam param="move_base/local_costmap/global_frame" subst_value="True">map</rosparam>
+    <!--rosparam param="move_base/global_costmap/global_obstacle_layer/laser_scan_sensor/sensor_frame" subst_value="True">$(arg robot_name)/base_scan</rosparam>
+    <rosparam param="move_base/local_costmap/local_obstacle_layer/laser_scan_sensor/sensor_frame" subst_value="True">$(arg robot_name)/base_scan</rosparam>
+    <rosparam param="move_base/global_costmap/global_obstacle_layer/laser_scan_sensor/topic" subst_value="True">$(arg robot_name)/scan</rosparam>
+    <rosparam param="move_base/local_costmap/local_obstacle_layer/laser_scan_sensor/topic" subst_value="True">$(arg robot_name)/scan</rosparam-->
+  </group>
+
+</launch>

@@ -1,0 +1,36 @@
+---
+session: cbpae_turtles
+init_cmd: |
+  # exec /bin/bash
+  cd @TMULE_COFIG_DIR@ || true
+  set -o pipefail
+  function export_default () {
+    var_name="$1"
+    var_default="$2"
+    eval $var_name="${!var_name:-$var_default}"
+    export $var_name
+    echo "  $0 -> $var_name=${!var_name}"
+  }
+  export_default MONGO_PATH "$HOME/mongodb"
+
+windows:
+- name: base
+  panes:
+  - roscore
+- name: gazebo
+  panes:
+  - roslaunch cbpae gazebo_bringup.launch
+  - roslaunch cbpae turtlebot3_bringup_multi.launch robot_name:="robot_00" initial_pose_x:=0.0 initial_pose_y:=0.0 initial_pose_Y:=0.0
+  - roslaunch cbpae turtlebot3_bringup_multi.launch robot_name:="robot_01" initial_pose_x:=0.0 initial_pose_y:=1.0 initial_pose_Y:=0.0
+- name: 2Dloc
+  panes:
+  - rosrun map_server map_server $(rospack find cbpae)/maps/open_field.yaml
+  - roslaunch cbpae turtlebot3_localisation_multi.launch robot_name:="robot_00" initial_pose_x:=0.0 initial_pose_y:=0.0 initial_pose_Y:=0.0
+  - roslaunch cbpae turtlebot3_localisation_multi.launch robot_name:="robot_01" initial_pose_x:=0.0 initial_pose_y:=1.0 initial_pose_Y:=0.0
+- name: navig
+  panes:
+  - roslaunch cbpae turtlebot3_navigation_multi.launch robot_name:="robot_00"
+  - roslaunch cbpae turtlebot3_navigation_multi.launch robot_name:="robot_01"
+- name: rviz
+  panes:
+  - rosrun rviz rviz -d $(rospack find cbpae)/rviz/cbpae_turtles.rviz

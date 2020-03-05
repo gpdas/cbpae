@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="model" default="$(env TURTLEBOT3_MODEL)" doc="model type [burger, waffle, waffle_pi]"/>
+  <arg name="ns" default="tb3_0"/>
+
+  <include file="$(find turtlebot3_teleop)/launch/turtlebot3_teleop_key.launch" ns="$(arg ns)"/>
+</launch>

@@ -111,13 +111,16 @@ def readInData(fName):
 #            rType = "test"
 
             rId = int(rStr[0].strip(), 10)
-            rType = rStr[9]
+            rType = rStr[10+2*nSkills].strip(" ")
             if rType == "test":
+                print(rId, rType, "test")
                 robotList[rId] = robot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
             elif rType == "ros":
+                print(rId, rType, "ros")
                 robotList[rId] = rosbot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
             else:
                 # default same as for rType "test"
+                print(rId, rType, "test-default")
                 robotList[rId] = robot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
 
             # setting expertise

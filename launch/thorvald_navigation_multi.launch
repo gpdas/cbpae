@@ -1,0 +1,37 @@
+<?xml version="1.0" ?>
+<launch>
+  <!-- Arguments -->
+  <arg name="robot_name" default="robot_00" />
+  <arg name="tf_prefix" default="$(arg robot_name)"/>
+
+  <group ns="$(arg robot_name)">
+    <remap from="map" to="/map" />
+
+    <!-- move_base -->
+    <node name="move_base" pkg="move_base" type="move_base" output="screen">
+      <remap from="odom" to="odometry/base_raw" />
+      <remap from="cmd_vel" to="nav_vel" />
+
+      <rosparam file="$(find cbpae)/params/thorvald/costmap_common_params.yaml" command="load" ns="global_costmap"/>
+      <rosparam file="$(find cbpae)/params/thorvald/costmap_common_params.yaml" command="load" ns="local_costmap"/>
+
+      <rosparam file="$(find cbpae)/params/thorvald/global_costmap_params.yaml" command="load"/>
+      <rosparam file="$(find cbpae)/params/thorvald/local_costmap_params.yaml" command="load"/>
+
+      <rosparam file="$(find cbpae)/params/thorvald/planners.yaml" command="load"/>
+
+      <!--remap some frames-->
+      <rosparam param="global_costmap/robot_base_frame" subst_value="True">$(arg tf_prefix)/base_link</rosparam>
+      <rosparam param="local_costmap/robot_base_frame" subst_value="True">$(arg tf_prefix)/base_link</rosparam>
+
+      <!--remap hokuyo frame and topic-->
+      <rosparam param="local_costmap/obstacle_layer/laser_scan_sensor/sensor_frame" subst_value="True">$(arg tf_prefix)/hokuyo</rosparam>
+      <rosparam param="local_costmap/obstacle_layer/laser_scan_sensor/topic" subst_value="True">scan</rosparam>
+      <rosparam param="global_costmap/global_obstacle_layer/laser_scan_sensor/sensor_frame" subst_value="True">$(arg tf_prefix)/hokuyo</rosparam>
+      <rosparam param="global_costmap/global_obstacle_layer/laser_scan_sensor/topic" subst_value="True">scan</rosparam>
+
+    </node>
+
+  </group>
+
+</launch>
