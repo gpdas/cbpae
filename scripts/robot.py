@@ -35,7 +35,7 @@ import Queue
 import task
 import random
 
-class Robot():
+class Robot(object):
     """ Description of the robot class """
     def __init__(self, rIndex, xCord=0.0, yCord=0.0, heading=0.0, nTaskLimit=1,  rOn=0.0, rOff=float("inf"), ipAdd="localhost", portNum=6665, doTask=False):
         """ Robot class constructor
