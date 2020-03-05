@@ -16,6 +16,7 @@ import rospy
 import move_base_msgs.msg
 import nav_msgs.msg
 import actionlib
+import std_msgs.msg
 
 class Robot(robot.Robot):
     """
@@ -30,6 +31,7 @@ class Robot(robot.Robot):
                  rOff, ipAdd, portNum, doTask)
         self.ns = "robot_%02d" %(rIndex)
         self.mbClient = actionlib.SimpleActionClient(self.ns+"/move_base", move_base_msgs.msg.MoveBaseAction)
+        self.mbClient.wait_for_server()
 
         self.mbFinished = False
         self.goalSent = False
@@ -37,6 +39,7 @@ class Robot(robot.Robot):
         self.xPos = xCord
         self.yPos = yCord
         self.odomSub = rospy.Subscriber(self.ns+"/odometry/base_raw", nav_msgs.msg.Odometry, self.odomCB)
+        self.pub = rospy.Publisher(self.ns+"/chatter", std_msgs.msg.String)
 
     def odomCB(self, msg):
         """
@@ -312,16 +315,19 @@ class Robot(robot.Robot):
 
             self.goalSent = False
             self.mbFinished = False
-#            timePrev = time.time()
+
             taskFinish = 0
             while (taskFinish == 0):     # when task not finished
                 time.sleep(0.1)
-#                print ("%s here: tf- %d, gs - %s" %(self.index, taskFinish, self.goalSent))
+#                rospy.loginfo ("%s here: tf- %d, gs - %s" %(self.index, taskFinish, self.goalSent))
                 if not self.goalSent:
                     goal = move_base_msgs.msg.MoveBaseGoal()
+                    goal.target_pose.header.frame_id = "map"
                     goal.target_pose.pose.position.x = tX
                     goal.target_pose.pose.position.y = tY
+                    goal.target_pose.pose.orientation.w = 1
                     self.mbClient.send_goal(goal, done_cb=self.doneCB)
+                    time.sleep(0.1)
                     self.goalSent = True
 
                 xNew = self.xPos
