@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /robot_001
+        - /robot_001/robot_model1
         - /robot_011
       Splitter Ratio: 0.6352941393852234
     Tree Height: 550
@@ -71,37 +72,153 @@ Visualization Manager:
         All Enabled: true
         map:
           Value: true
-        robot_00/base_footprint:
-          Value: true
         robot_00/base_link:
           Value: true
-        robot_00/base_scan:
+        robot_00/bat0:
           Value: true
-        robot_00/caster_back_link:
+        robot_00/bat1:
           Value: true
-        robot_00/imu_link:
+        robot_00/corner0:
+          Value: true
+        robot_00/corner0_1:
+          Value: true
+        robot_00/corner0_2:
+          Value: true
+        robot_00/corner1:
+          Value: true
+        robot_00/corner1_1:
+          Value: true
+        robot_00/corner1_2:
+          Value: true
+        robot_00/corner2:
+          Value: true
+        robot_00/corner2_1:
+          Value: true
+        robot_00/corner2_2:
+          Value: true
+        robot_00/corner3:
+          Value: true
+        robot_00/corner3_1:
+          Value: true
+        robot_00/corner3_2:
+          Value: true
+        robot_00/hokuyo:
+          Value: true
+        robot_00/leg0:
+          Value: true
+        robot_00/leg1:
+          Value: true
+        robot_00/leg2:
+          Value: true
+        robot_00/leg3:
           Value: true
         robot_00/odom:
           Value: true
-        robot_00/wheel_left_link:
+        robot_00/pipe0_1:
           Value: true
-        robot_00/wheel_right_link:
+        robot_00/pipe0_2:
           Value: true
-        robot_01/base_footprint:
+        robot_00/pipe1_1:
+          Value: true
+        robot_00/pipe1_2:
+          Value: true
+        robot_00/pipe2_1:
+          Value: true
+        robot_00/pipe2_2:
+          Value: true
+        robot_00/pipe3_1:
+          Value: true
+        robot_00/pipe3_2:
+          Value: true
+        robot_00/top0:
+          Value: true
+        robot_00/top1:
+          Value: true
+        robot_00/top2:
+          Value: true
+        robot_00/top3:
+          Value: true
+        robot_00/wheel0_link:
+          Value: true
+        robot_00/wheel1_link:
+          Value: true
+        robot_00/wheel2_link:
+          Value: true
+        robot_00/wheel3_link:
           Value: true
         robot_01/base_link:
           Value: true
-        robot_01/base_scan:
+        robot_01/bat0:
           Value: true
-        robot_01/caster_back_link:
+        robot_01/bat1:
           Value: true
-        robot_01/imu_link:
+        robot_01/corner0:
+          Value: true
+        robot_01/corner0_1:
+          Value: true
+        robot_01/corner0_2:
+          Value: true
+        robot_01/corner1:
+          Value: true
+        robot_01/corner1_1:
+          Value: true
+        robot_01/corner1_2:
+          Value: true
+        robot_01/corner2:
+          Value: true
+        robot_01/corner2_1:
+          Value: true
+        robot_01/corner2_2:
+          Value: true
+        robot_01/corner3:
+          Value: true
+        robot_01/corner3_1:
+          Value: true
+        robot_01/corner3_2:
+          Value: true
+        robot_01/hokuyo:
+          Value: true
+        robot_01/leg0:
+          Value: true
+        robot_01/leg1:
+          Value: true
+        robot_01/leg2:
+          Value: true
+        robot_01/leg3:
           Value: true
         robot_01/odom:
           Value: true
-        robot_01/wheel_left_link:
+        robot_01/pipe0_1:
           Value: true
-        robot_01/wheel_right_link:
+        robot_01/pipe0_2:
+          Value: true
+        robot_01/pipe1_1:
+          Value: true
+        robot_01/pipe1_2:
+          Value: true
+        robot_01/pipe2_1:
+          Value: true
+        robot_01/pipe2_2:
+          Value: true
+        robot_01/pipe3_1:
+          Value: true
+        robot_01/pipe3_2:
+          Value: true
+        robot_01/top0:
+          Value: true
+        robot_01/top1:
+          Value: true
+        robot_01/top2:
+          Value: true
+        robot_01/top3:
+          Value: true
+        robot_01/wheel0_link:
+          Value: true
+        robot_01/wheel1_link:
+          Value: true
+        robot_01/wheel2_link:
+          Value: true
+        robot_01/wheel3_link:
           Value: true
       Marker Scale: 1
       Name: TF
@@ -111,31 +228,133 @@ Visualization Manager:
       Tree:
         map:
           robot_00/odom:
-            robot_00/base_footprint:
-              robot_00/base_link:
-                robot_00/base_scan:
+            robot_00/base_link:
+              robot_00/bat0:
+                {}
+              robot_00/bat1:
+                {}
+              robot_00/corner0:
+                robot_00/corner0_1:
                   {}
-                robot_00/caster_back_link:
+                robot_00/corner0_2:
                   {}
-                robot_00/imu_link:
+              robot_00/corner1:
+                robot_00/corner1_1:
                   {}
-                robot_00/wheel_left_link:
+                robot_00/corner1_2:
                   {}
-                robot_00/wheel_right_link:
+              robot_00/corner2:
+                robot_00/corner2_1:
                   {}
+                robot_00/corner2_2:
+                  {}
+              robot_00/corner3:
+                robot_00/corner3_1:
+                  {}
+                robot_00/corner3_2:
+                  {}
+              robot_00/hokuyo:
+                {}
+              robot_00/leg0:
+                robot_00/wheel0_link:
+                  {}
+              robot_00/leg1:
+                robot_00/wheel1_link:
+                  {}
+              robot_00/leg2:
+                robot_00/wheel2_link:
+                  {}
+              robot_00/leg3:
+                robot_00/wheel3_link:
+                  {}
+              robot_00/pipe0_1:
+                {}
+              robot_00/pipe0_2:
+                {}
+              robot_00/pipe1_1:
+                {}
+              robot_00/pipe1_2:
+                {}
+              robot_00/pipe2_1:
+                {}
+              robot_00/pipe2_2:
+                {}
+              robot_00/pipe3_1:
+                {}
+              robot_00/pipe3_2:
+                {}
+              robot_00/top0:
+                {}
+              robot_00/top1:
+                {}
+              robot_00/top2:
+                {}
+              robot_00/top3:
+                {}
           robot_01/odom:
-            robot_01/base_footprint:
-              robot_01/base_link:
-                robot_01/base_scan:
+            robot_01/base_link:
+              robot_01/bat0:
+                {}
+              robot_01/bat1:
+                {}
+              robot_01/corner0:
+                robot_01/corner0_1:
                   {}
-                robot_01/caster_back_link:
+                robot_01/corner0_2:
                   {}
-                robot_01/imu_link:
+              robot_01/corner1:
+                robot_01/corner1_1:
                   {}
-                robot_01/wheel_left_link:
+                robot_01/corner1_2:
                   {}
-                robot_01/wheel_right_link:
+              robot_01/corner2:
+                robot_01/corner2_1:
                   {}
+                robot_01/corner2_2:
+                  {}
+              robot_01/corner3:
+                robot_01/corner3_1:
+                  {}
+                robot_01/corner3_2:
+                  {}
+              robot_01/hokuyo:
+                {}
+              robot_01/leg0:
+                robot_01/wheel0_link:
+                  {}
+              robot_01/leg1:
+                robot_01/wheel1_link:
+                  {}
+              robot_01/leg2:
+                robot_01/wheel2_link:
+                  {}
+              robot_01/leg3:
+                robot_01/wheel3_link:
+                  {}
+              robot_01/pipe0_1:
+                {}
+              robot_01/pipe0_2:
+                {}
+              robot_01/pipe1_1:
+                {}
+              robot_01/pipe1_2:
+                {}
+              robot_01/pipe2_1:
+                {}
+              robot_01/pipe2_2:
+                {}
+              robot_01/pipe3_1:
+                {}
+              robot_01/pipe3_2:
+                {}
+              robot_01/top0:
+                {}
+              robot_01/top1:
+                {}
+              robot_01/top2:
+                {}
+              robot_01/top3:
+                {}
       Update Interval: 0
       Value: true
     - Class: rviz/Group
@@ -150,35 +369,181 @@ Visualization Manager:
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
-            base_footprint:
+            robot_00/base_link:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-            base_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan:
+            robot_00/bat0:
               Alpha: 1
               Show Axes: false
               Show Trail: false
               Value: true
-            caster_back_link:
+            robot_00/bat1:
               Alpha: 1
               Show Axes: false
               Show Trail: false
               Value: true
-            imu_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            wheel_left_link:
+            robot_00/corner0:
               Alpha: 1
               Show Axes: false
               Show Trail: false
               Value: true
-            wheel_right_link:
+            robot_00/corner0_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner0_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner1_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner1_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner2_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner2_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner3:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner3_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/corner3_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/hokuyo:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/leg0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/leg1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/leg2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/leg3:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/pipe0_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/pipe0_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/pipe1_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/pipe1_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/pipe2_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/pipe2_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/pipe3_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/pipe3_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/top0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/top1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/top2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/top3:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/wheel0_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/wheel1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/wheel2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_00/wheel3_link:
               Alpha: 1
               Show Axes: false
               Show Trail: false
@@ -285,35 +650,181 @@ Visualization Manager:
             Expand Link Details: false
             Expand Tree: false
             Link Tree Style: Links in Alphabetic Order
-            base_footprint:
+            robot_01/base_link:
               Alpha: 1
               Show Axes: false
               Show Trail: false
-            base_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-              Value: true
-            base_scan:
+            robot_01/bat0:
               Alpha: 1
               Show Axes: false
               Show Trail: false
               Value: true
-            caster_back_link:
+            robot_01/bat1:
               Alpha: 1
               Show Axes: false
               Show Trail: false
               Value: true
-            imu_link:
-              Alpha: 1
-              Show Axes: false
-              Show Trail: false
-            wheel_left_link:
+            robot_01/corner0:
               Alpha: 1
               Show Axes: false
               Show Trail: false
               Value: true
-            wheel_right_link:
+            robot_01/corner0_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner0_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner1_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner1_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner2_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner2_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner3:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner3_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/corner3_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/hokuyo:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/leg0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/leg1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/leg2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/leg3:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/pipe0_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/pipe0_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/pipe1_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/pipe1_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/pipe2_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/pipe2_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/pipe3_1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/pipe3_2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/top0:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/top1:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/top2:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/top3:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/wheel0_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/wheel1_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/wheel2_link:
+              Alpha: 1
+              Show Axes: false
+              Show Trail: false
+              Value: true
+            robot_01/wheel3_link:
               Alpha: 1
               Show Axes: false
               Show Trail: false
@@ -445,7 +956,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 34.91337966918945
+      Scale: 164.13494873046875
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
       X: -0.06844589114189148

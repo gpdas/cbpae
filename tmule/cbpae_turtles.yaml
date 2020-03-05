@@ -19,9 +19,9 @@ windows:
   - roscore
 - name: gazebo
   panes:
-  - roslaunch cbpae bringup_gazebo.launch
-  - roslaunch cbpae bringup_turtlebot3_multi.launch robot_name:="robot_00" initial_pose_x:=0.0 initial_pose_y:=0.0 initial_pose_Y:=0.0
-  - roslaunch cbpae bringup_turtlebot3_multi.launch robot_name:="robot_01" initial_pose_x:=0.0 initial_pose_y:=1.0 initial_pose_Y:=0.0
+  - roslaunch cbpae gazebo_bringup.launch
+  - roslaunch cbpae turtlebot3_bringup_multi.launch robot_name:="robot_00" initial_pose_x:=0.0 initial_pose_y:=0.0 initial_pose_Y:=0.0
+  - roslaunch cbpae turtlebot3_bringup_multi.launch robot_name:="robot_01" initial_pose_x:=0.0 initial_pose_y:=1.0 initial_pose_Y:=0.0
 - name: 2Dloc
   panes:
   - rosrun map_server map_server $(rospack find cbpae)/maps/open_field.yaml
