@@ -1,11 +1,14 @@
 # Consensus Based Parallel Allocation and Execution (CBPAE)
 
-Version 5.00.02
+Version 5.01.00
 
 A multi-robot task allocation (MRTA) algorithm for ST-SR-IA with
   * task priorities
   * task drop to attend an emergency priority task
   * simple inter-robot communication
+  * heterogeneous robots and tasks
+  * skills and expertise based bidding
+  * parallel allocation and execution (PAE)
 
 Each robot is contained in a separate process and the robots communicate using inter-process communication (implemented with a centralised communciation manager).
 
@@ -22,9 +25,9 @@ Create more data files using `scripts/createData.py`
 
 Modify `cbpae.py` with the input data file details and run using `python2`.
 
-Logs are stored in `logs/`.
+Logs are stored in `$HOME/cbpae/logs/`.
 
-Plots are generated in `plots/` from the logs.
+Plots are generated in `$HOME/cbpae/plots/` from the logs.
 
 ## Citation
 
