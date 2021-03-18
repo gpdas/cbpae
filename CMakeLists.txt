@@ -199,7 +199,7 @@ install(PROGRAMS
   scripts/mapData.py
   scripts/misc.py
   scripts/plotLogs.py
-  scripts/processLogCBPAE.py
+  scripts/processLog-CBPAE.py
   scripts/readInData.py
   scripts/robot.py
   scripts/rosbot.py
