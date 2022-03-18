@@ -27,7 +27,7 @@
 ## ---------------------------------------------------- ##
 
 import math
-import Queue
+import queue
 
 epsilon = 0.000001
 
@@ -114,7 +114,7 @@ def recvMsg(msgQ):
     while (True):
         try:
             msg = msgQ.get_nowait()
-        except Queue.Empty:
+        except queue.Empty:
             break
         else:
             msgData.append(msg)

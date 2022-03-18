@@ -178,105 +178,105 @@ def createData():
             fileClean = [dataFile3, dataFile4, dataFile7, dataFile8]
 
             for fileItem in (fileOpen+fileClean):
-                print >>fileItem, "## map info:\n# no. of rooms, no. of nodes"
+                print ("## map info:\n# no. of rooms, no. of nodes", file=fileItem)
 
             for fileItem in (fileOpen):
-                print >>fileItem, "%d, %d" %(nRooms, nNodes)
+                print ("%d, %d" %(nRooms, nNodes), file=fileItem)
             for fileItem in (fileClean):
-                print >>fileItem, "%d, %d" %(nRoomsClean, nNodesClean)
+                print ("%d, %d" %(nRoomsClean, nNodesClean), file=fileItem)
 
             for fileItem in (fileOpen):
-                print >>fileItem, "# workspace boundary: xMin, xmax, yMin, yMax"
+                print ("# workspace boundary: xMin, xmax, yMin, yMax", file=fileItem)
             for fileItem in (fileClean):
-                print >>fileItem, "# workspace boundary: xMin, xmax, yMin, yMax"
+                print ("# workspace boundary: xMin, xmax, yMin, yMax", file=fileItem)
 
             for fileItem in (fileOpen+fileClean):
-                print >>fileItem, "%0.3f, %0.3f, %0.3f, %0.3f" %(xMin, xMax, yMin, yMax)
+                print ("%0.3f, %0.3f, %0.3f, %0.3f" %(xMin, xMax, yMin, yMax), file=fileItem)
 
             for fileItem in (fileOpen+fileClean):
-                print >>fileItem, "# room boundary: roomID, xMin, xmax, yMin, yMax"
+                print ("# room boundary: roomID, xMin, xmax, yMin, yMax", file=fileItem)
 
             for fileItem in (fileOpen):
                 for idx in range(nRooms):
-                    print >>fileItem, "%d, %0.3f, %0.3f, %0.3f, %0.3f" %(rooms[idx][0], rooms[idx][1], rooms[idx][2], rooms[idx][3], rooms[idx][4])
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f" %(rooms[idx][0], rooms[idx][1], rooms[idx][2], rooms[idx][3], rooms[idx][4]), file=fileItem)
             for fileItem in (fileClean):
                 for idx in range(nRoomsClean):
-                    print >>fileItem, "%d, %0.3f, %0.3f, %0.3f, %0.3f" %(roomsClean[idx][0], roomsClean[idx][1], roomsClean[idx][2], roomsClean[idx][3], roomsClean[idx][4])
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f" %(roomsClean[idx][0], roomsClean[idx][1], roomsClean[idx][2], roomsClean[idx][3], roomsClean[idx][4]), file=fileItem)
 
             for fileItem in (fileOpen):
-                print >>fileItem, "# nodes: nodeID, x, y"
+                print ("# nodes: nodeID, x, y", file=fileItem)
             for fileItem in (fileClean):
-                print >>fileItem, "# nodes: nodeID, x, y"
+                print ("# nodes: nodeID, x, y", file=fileItem)
 
             for fileItem in (fileOpen):
                 for idx in range(nNodes):
-                    print >>fileItem, "%d, %0.3f, %0.3f" %(nodes[idx][0], nodes[idx][1], nodes[idx][2])
+                    print ("%d, %0.3f, %0.3f" %(nodes[idx][0], nodes[idx][1], nodes[idx][2]), file=fileItem)
             for fileItem in (fileClean):
                 for idx in range(nNodesClean):
-                    print >>fileItem, "%d, %0.3f, %0.3f" %(nodesClean[idx][0], nodesClean[idx][1], nodesClean[idx][2])
+                    print ("%d, %0.3f, %0.3f" %(nodesClean[idx][0], nodesClean[idx][1], nodesClean[idx][2]), file=fileItem)
 
             for fileItem in (fileOpen+fileClean):
-                print >>fileItem, "# edges: nodeID, IDs of connected nodes"
+                print ("# edges: nodeID, IDs of connected nodes", file=fileItem)
 
             for fileItem in (fileOpen):
                 if (nNodes > 0):
                     for idx1 in range(nNodes):
                         for idx2 in range(len(edges[idx1])-1):
-                            print >>fileItem, "%d," %(edges[idx1][idx2])
-                        print >>fileItem, "%d" %(edges[idx1][len(edges[idx1])-1])
+                            print ("%d" %(edges[idx1][idx2]), end=", ", file=fileItem)
+                        print ("%d" %(edges[idx1][len(edges[idx1])-1]), file=fileItem)
             for fileItem in (fileClean):
                 if (nNodesClean > 0):
                     for idx1 in range(nNodesClean):
                         for idx2 in range(len(edgesClean[idx1])-1):
-                            print >>fileItem, "%d," %(edgesClean[idx1][idx2])
-                        print >>fileItem, "%d" %(edgesClean[idx1][len(edgesClean[idx1])-1])
+                            print ("%d" %(edgesClean[idx1][idx2]), end=", ", file=fileItem)
+                        print ("%d" %(edgesClean[idx1][len(edgesClean[idx1])-1]), file=fileItem)
 
             for fileItem in (fileOpen+fileClean):
-                print >>fileItem, "## robot info\n# no. of robots"
-                print >>fileItem, "%d" %(nr)
-                print >>fileItem, "# sim info - for stage simulation gripper proxy is not available in stage2"
-                print >>fileItem, "true"
-                print >>fileItem, "# do task"
-                print >>fileItem, "true"
-                print >>fileItem, "# robot: rId, xOrg, yOrg, aOrg, taskLimit, onTime, offTime, hostIP, port, nSkills, sNavigation, eNavigation, sVision, eVision, sAudition, eAudition, sGripper, eGripper, sCleaner, eCleaner, sManipulator, eManipulator, rtype"
+                print ("## robot info\n# no. of robots", file=fileItem)
+                print ("%d" %(nr), file=fileItem)
+                print ("# sim info - for stage simulation gripper proxy is not available in stage2", file=fileItem)
+                print ("true", file=fileItem)
+                print ("# do task", file=fileItem)
+                print ("true", file=fileItem)
+                print ("# robot: rId, xOrg, yOrg, aOrg, taskLimit, onTime, offTime, hostIP, port, nSkills, sNavigation, eNavigation, sVision, eVision, sAudition, eAudition, sGripper, eGripper, sCleaner, eCleaner, sManipulator, eManipulator, rtype", file=fileItem)
 
             for fileItem in (fileOpen[:2]+fileClean[:2]):
                 for i in range(0, nr):
-                    print >>fileItem, "%d, %0.3f, %0.3f, %0.3f, %d, %0.3f, %0.3f, %s, %d, %d," %(i, rList[i][0], rList[i][1], rList[i][2], rList[i][3], rList[i][4], rList[i][5], rList[i][6], rList[i][7], rList[i][8]),
+                    print ("%d, %0.3f, %0.3f, %0.3f, %d, %0.3f, %0.3f, %s, %d, %d" %(i, rList[i][0], rList[i][1], rList[i][2], rList[i][3], rList[i][4], rList[i][5], rList[i][6], rList[i][7], rList[i][8]), end=", ", file=fileItem)
                     nSkill = rList[i][8]
                     for idx in range(nSkill-1):
-                        print >>fileItem, "%s, %0.3f, " %(rList[i][9][idx], rList[i][10][idx]),
-                    print >>fileItem, "%s, %0.3f, " %(rList[i][9][nSkill-1], rList[i][10][nSkill-1]),
-                    print >>fileItem, "%s" %(rType)
+                        print ("%s, %0.3f" %(rList[i][9][idx], rList[i][10][idx]), end=", ", file=fileItem)
+                    print ("%s, %0.3f" %(rList[i][9][nSkill-1], rList[i][10][nSkill-1]), end=", ", file=fileItem)
+                    print ("%s" %(rType), file=fileItem)
 
             for fileItem in (fileOpen[2:]+fileClean[2:]):
                 for i in range(0, nr):
-                    print >>fileItem, "%d, %0.3f, %0.3f, %0.3f, %d, %0.3f, %0.3f, %s, %d, %d," %(i, rListHomo[i][0], rListHomo[i][1], rListHomo[i][2], rListHomo[i][3], rListHomo[i][4], rListHomo[i][5], rListHomo[i][6], rListHomo[i][7], rListHomo[i][8]),
+                    print ("%d, %0.3f, %0.3f, %0.3f, %d, %0.3f, %0.3f, %s, %d, %d" %(i, rListHomo[i][0], rListHomo[i][1], rListHomo[i][2], rListHomo[i][3], rListHomo[i][4], rListHomo[i][5], rListHomo[i][6], rListHomo[i][7], rListHomo[i][8]), end=", ", file=fileItem)
                     nSkillHomo = rListHomo[i][8]
                     for idx in range(nSkillHomo-1):
-                        print >>fileItem, "%s, %0.3f, " %(rListHomo[i][9][idx], rListHomo[i][10][idx]),
-                    print >>fileItem, "%s, %0.3f, " %(rListHomo[i][9][nSkillHomo-1], rListHomo[i][10][nSkillHomo-1]),
-                    print >>fileItem, "%s" %(rType)
+                        print ("%s, %0.3f" %(rListHomo[i][9][idx], rListHomo[i][10][idx]), end=", ", file=fileItem)
+                    print ("%s, %0.3f" %(rListHomo[i][9][nSkillHomo-1], rListHomo[i][10][nSkillHomo-1]), end=", ", file=fileItem)
+                    print ("%s" %(rType), file=fileItem)
 
             for fileItem in (fileOpen+fileClean):
-                print >>fileItem, "## task info:\n# no of tasks"
-                print >>fileItem, "%d" %(nt)
-                print >>fileItem, "# tasks: tId, xOrg, yOrg, xFinish, yFinish, onTime, offTime, priority, tType"
+                print ("## task info:\n# no of tasks", file=fileItem)
+                print ("%d" %(nt), file=fileItem)
+                print ("# tasks: tId, xOrg, yOrg, xFinish, yFinish, onTime, offTime, priority, tType", file=fileItem)
 
             for j in range(0, nt):
                 if (j < nt-3):
                     for fileItem in (fileOpen+fileClean):
-                        print >>fileItem, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][2], tList[j][3], tList[j][4], tList[j][5], tList[j][6], tList[j][7])
+                        print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][2], tList[j][3], tList[j][4], tList[j][5], tList[j][6], tList[j][7]), file=fileItem)
                 else:
-                    print >>dataFile1, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], tList[j][4], tList[j][5], 0, "fall")
-                    print >>dataFile3, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], tList[j][4], tList[j][5], 0, "fall")
-                    print >>dataFile5, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], tList[j][4], tList[j][5], 0, "fall")
-                    print >>dataFile7, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], tList[j][4], tList[j][5], 0, "fall")
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], tList[j][4], tList[j][5], 0, "fall"), file=dataFile1)
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], tList[j][4], tList[j][5], 0, "fall"), file=dataFile3)
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], tList[j][4], tList[j][5], 0, "fall"), file=dataFile5)
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], tList[j][4], tList[j][5], 0, "fall"), file=dataFile7)
 
-                    print >>dataFile2, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], 200.0, tList[j][5], 0, "fall")
-                    print >>dataFile4, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], 200.0, tList[j][5], 0, "fall")
-                    print >>dataFile6, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], 200.0, tList[j][5], 0, "fall")
-                    print >>dataFile8, "%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], 200.0, tList[j][5], 0, "fall")
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], 200.0, tList[j][5], 0, "fall"), file=dataFile2)
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], 200.0, tList[j][5], 0, "fall"), file=dataFile4)
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], 200.0, tList[j][5], 0, "fall"), file=dataFile6)
+                    print ("%d, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %0.3f, %d, %s" %(j, tList[j][0], tList[j][1], tList[j][0], tList[j][1], 200.0, tList[j][5], 0, "fall"), file=dataFile8)
 
             for fileItem in (fileOpen+fileClean):
                 fileItem.close()

@@ -36,7 +36,7 @@ def readInData(fName):
     ## Initialization phase:
     mapInfo = mapData.MapData() # map information
 
-    """read from file & initialize"""
+    # read from file & initialize
     dataFile = open(fName, "r")
     dataFile.readline() # map info:
 
@@ -107,7 +107,7 @@ def readInData(fName):
                 skills.append(rStr[idx].strip())
                 expertise.append(float(rStr[idx+1]))
 
-            # only considering "test" and "ros" and ignoring "player", "playerstage" types here
+            # only considering "test" and "ros"
 #            rType = "test"
 
             rId = int(rStr[0].strip(), 10)
@@ -158,5 +158,5 @@ def readInData(fName):
     return (robotIds, robotList, taskIds, taskList, mapInfo)
 
 if __name__ == "__main__":
-
-    readInData()
+    fName = "../config/testing_inData.dat"
+    readInData(fName)

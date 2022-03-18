@@ -31,9 +31,8 @@ import time
 import misc
 import math
 import multiprocessing
-import Queue
+import queue
 import task
-import random
 
 class Robot(object):
     """ Description of the robot class """
@@ -265,7 +264,7 @@ class Robot(object):
             else:
                 skillsReq = self.taskList[tId].skillsReq     # skills required for the task
                 for skill in (skillsReq):
-                    if not (self.expertise.has_key(skill)):
+                    if (skill not in self.expertise.keys()):
 #                        print ("r[%d] doesn't have the skills for t[%d]" %(self.index, tId))
                         self.taskExecutable[tId]     = 0     # robot doesn't have the required skill
                         break
@@ -356,12 +355,12 @@ class Robot(object):
                                 currNotNext = []
                                 nextNotCurr = []
                                 for skill in (currTaskSkills):
-                                    if nextTaskEffort.has_key(skill):
+                                    if skill in nextTaskEffort.keys():
                                         commonSkills.append(skill)
                                     else:
                                         currNotNext.append(skill)
                                 for skill in (nextTaskSkills):
-                                    if not currTaskEffort.has_key(skill):
+                                    if skill not in currTaskEffort.keys():
                                         nextNotCurr.append(skill)
 
                                 for skill in (commonSkills):
@@ -1013,7 +1012,7 @@ class Robot(object):
                         yNew = msgNew[1]
                         stage = msgNew[2]
                         stat = msgNew[3]
-                    except Queue.Empty:
+                    except queue.Empty:
                         break
                     else:
                         self.x.append(xNew)
@@ -1048,7 +1047,7 @@ class Robot(object):
                         yNew = msgNew[1]
                         stage = msgNew[2]
                         stat = msgNew[3]
-                    except Queue.Empty:
+                    except queue.Empty:
                         break
                     else:
                         self.x.append(xNew)
@@ -1308,7 +1307,7 @@ class Robot(object):
                 # stop the current execution with a stat return of 2
                 try:
                     com     = cmdQ.get_nowait() # command from main process. 1-> stop current task
-                except Queue.Empty:
+                except queue.Empty:
                     pass
                 else:
                     if (com == 1):
@@ -1361,7 +1360,7 @@ class Robot(object):
         # sectorData is either sonar or laser.
         zone     = -1
         for s in (['L', 'LF', 'F', 'RF', 'R']):
-            if (sectorData.has_key(s)):
+            if (s in sectorData.keys()):
                 if ((zone == -1) or (zone > 0)) and misc.lt(sectorData[s], self.zone[0]):
                     zone = 0
                 elif ((zone == -1) or (zone > 1)) and misc.lt(sectorData[s], self.zone[1]):
@@ -2017,49 +2016,49 @@ class Robot(object):
                 # fall: navigation -> vision -> audition
                 if (skill == "vision"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    pass
+                    
                 elif (skill == "audition"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1] + self.taskList[tIndex].timeExec["vision"]
-                    pass
+                    
 
             elif (self.taskList[tIndex].taskType == "surveillance"):
                 # surveillance: navigation -> vision -> audition
                 if (skill == "vision"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    pass
+                    
                 elif (skill == "audition"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1] + self.taskList[tIndex].timeExec["vision"]
-                    pass
+                    
 
             elif (self.taskList[tIndex].taskType == "medicine"):
                 # medicine: navigation -> audition
                 if (skill == "audition"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    pass
+                    
 
             elif (self.taskList[tIndex].taskType == "clean"):
                 # clean: navigation -> cleaner
                 if (skill == "cleaner"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    pass
+                    
 
             elif (self.taskList[tIndex].taskType == "door"):
                 # door: navigation -> vision -> manipulator -> audition
                 if (skill == "vision"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    pass
+                    
                 elif (skill == "manipulator"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1] + self.taskList[tIndex].timeExec["vision"]
-                    pass
+                    
                 elif (skill == "audition"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1] + self.taskList[tIndex].timeExec["vision"] + self.taskList[tIndex].timeExec["manipulator"]
-                    pass
+                    
 
             elif (self.taskList[tIndex].taskType == "delivery"):
                 # delivery: navigation -> gripper -> navigation -> gripper
                 if (skill == "gripper"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    pass
+                    
 
             timeNow = time.time()
             timeDiff = (timeNow - timeStart)
@@ -2188,137 +2187,6 @@ class Robot(object):
         else:
             return 0
 
-    def getSafeDirection(self, sectorData, sonSectorData, tHeading, zone):
-        """getSafeDirection - part of avoidObstacle"""
-        # check the tHeading and check whether there is enough space to go in that direction
-        # if yes: go in that direction
-        # if no:
-        #     if tHeading is > 0 : # left movement.
-        #         start checking for an opening from left and move in the first opening
-        #         sleep for that time after setting the velocity
-        #     if tHeading is < 0 : # right movement.
-        #         start checking for an opening from right and move in the first opening
-        #         sleep for that time after setting the velocity
-        # check 'LF', 'F' and 'RF'
-        # take a left turn only if 'L' > zone1; else move forward, or right
-        # take a right turn only if 'R' > zone1; else move forward or left
-
-#        print ("robot[%d]: avoid obstacle" %(self.index))
-        moveBack = False
-        heading = 0.0
-        direction = 1
-        if (misc.gt(abs(tHeading), 2*math.pi)):
-            tHeading = (abs(tHeading)%(2*math.pi))*(tHeading/abs(tHeading))
-
-        if (misc.gt(tHeading, math.radians(5))):
-            # +ve => left turn
-            if (misc.gt(sectorData['L'], self.zone[0]) and
-                misc.gt(sectorData['LF'], self.zone[zone]) and
-                misc.gt(sectorData['F'], self.zone[zone])):
-                heading = tHeading
-            elif (misc.gt(sectorData['LF'], self.zone[0]) and
-                misc.gt(sectorData['F'], self.zone[zone]) and
-                misc.gt(sectorData['RF'], self.zone[0])):
-                heading = 0.0
-            elif (misc.gt(sectorData['F'], self.zone[zone]) and
-                misc.gt(sectorData['RF'], self.zone[zone]) and
-                misc.gt(sectorData['R'], self.zone[0])):
-                heading = -min(self.cornerHeading, tHeading)
-            elif (misc.gt(sectorData['L'], self.zone[0]) and
-                misc.gt(sectorData['LF'], self.zone[0]) and
-                misc.gt(sectorData['F'], self.zone[0]) and
-                misc.gt(abs(tHeading), math.radians(60))):
-                heading = math.radians(90)
-            else:
-                moveBack = True
-        elif (misc.lt(tHeading, math.radians(-5))):
-            # -ve => right turn
-            if (misc.gt(sectorData['F'], self.zone[zone]) and
-                misc.gt(sectorData['RF'], self.zone[zone]) and
-                misc.gt(sectorData['R'], self.zone[0])):
-                heading = tHeading
-            elif (misc.gt(sectorData['LF'], self.zone[0]) and
-                misc.gt(sectorData['F'], self.zone[zone]) and
-                misc.gt(sectorData['RF'], self.zone[0])):
-                heading = 0.0
-            elif (misc.gt(sectorData['L'], self.zone[zone]) and
-                misc.gt(sectorData['LF'], self.zone[zone]) and
-                misc.gt(sectorData['F'], self.zone[0])):
-                heading = min(self.cornerHeading, -tHeading)
-            elif (misc.gt(sectorData['R'], self.zone[0]) and
-                misc.gt(sectorData['RF'], self.zone[0]) and
-                misc.gt(sectorData['F'], self.zone[0]) and
-                misc.gt(abs(tHeading), math.radians(60))):
-                heading = - math.radians(90)
-            else:
-                moveBack = True
-
-        else:
-            # -5 < x < 5 : forward
-            if (misc.gt(sectorData['LF'], self.zone[0]) and
-                misc.gt(sectorData['F'], self.zone[zone]) and
-                misc.gt(sectorData['RF'], self.zone[0])):
-                heading = 0.0
-            elif (misc.gt(sectorData['L'], self.zone[0]) and
-                misc.gt(sectorData['LF'], self.zone[1]) and
-                misc.gt(sectorData['F'], self.zone[1])):
-                heading = self.cornerHeading
-            elif (misc.gt(sectorData['F'], self.zone[1]) and
-                misc.gt(sectorData['RF'], self.zone[1]) and
-                misc.gt(sectorData['R'], self.zone[0])):
-                heading = -self.cornerHeading
-            else:
-                moveBack     = True
-
-        if (moveBack):
-            direction     = -1
-            speed         = 0.05
-            safeDist     = min((sonSectorData[s] for s in (['L', 'LB', 'B', 'RB', 'R'])), 1.0)
-            # "moveBack"
-            if (misc.gt(tHeading, math.radians(5))):
-                if (misc.gt(sonSectorData['B'], self.zone[zone]) and
-                    misc.gt(sonSectorData['RB'], self.zone[zone]) and
-                    misc.gt(sonSectorData['R'], self.zone[0])):
-                    heading = -1 * misc.sign(tHeading) * self.cornerHeading
-                elif (misc.gt(sonSectorData['LB'], self.zone[0]) and
-                    misc.gt(sonSectorData['B'], self.zone[zone]) and
-                    misc.gt(sonSectorData['RB'], self.zone[0])):
-                    heading = random.choice([-self.cornerHeading, 0.0, self.cornerHeading])
-            elif (misc.lt(tHeading, math.radians(-5))):
-                if (misc.gt(sonSectorData['B'], self.zone[zone]) and
-                    misc.gt(sonSectorData['LB'], self.zone[zone]) and
-                    misc.gt(sonSectorData['L'], self.zone[0])):
-                    heading = -1 * misc.sign(tHeading) * self.cornerHeading
-                elif (misc.gt(sonSectorData['LB'], self.zone[0]) and
-                    misc.gt(sonSectorData['B'], self.zone[zone]) and
-                    misc.gt(sonSectorData['RB'], self.zone[0])):
-                    heading = random.choice([-self.cornerHeading, 0.0, self.cornerHeading])
-            else:
-                if (misc.gt(sonSectorData['LB'], self.zone[0]) and
-                    misc.gt(sonSectorData['B'], self.zone[zone]) and
-                    misc.gt(sonSectorData['RB'], self.zone[0])):
-                    heading = random.choice([-self.cornerHeading, 0.0, self.cornerHeading])
-                else:
-                    speed         = 0.0
-
-            return (safeDist, speed, heading, direction)
-
-        else:
-            direction = 1
-
-            if (zone == 0):
-                speed = 0.05
-            elif (zone == 1):
-                speed = 0.08
-            elif (zone == 2):
-                speed = 0.12
-            else:
-                print ("Error", zone)
-
-            safeDist = self.zone[zone]
-
-            return (safeDist, speed, heading, direction)
-
     def goToOrg(self):
         """similar to allocateTask this method creates a child process to go
         to the original location after completion of all tasks"""
@@ -2350,7 +2218,7 @@ class Robot(object):
                         xNew = msgNew[0]
                         yNew = msgNew[1]
                         stat = msgNew[2]
-                    except Queue.Empty:
+                    except queue.Empty:
                         break
                     else:
                         self.x.append(xNew)
@@ -2370,7 +2238,7 @@ class Robot(object):
                         xNew = msgNew[0]
                         yNew = msgNew[1]
                         stat = msgNew[2]
-                    except Queue.Empty:
+                    except queue.Empty:
                         break
                     else:
                         self.x.append(xNew)
@@ -2437,7 +2305,7 @@ class Robot(object):
             time.sleep(0.1)
             try:
                 cmd = cmdQ.get_nowait()
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             else:
                 if (cmd == 1):
@@ -2453,7 +2321,7 @@ class Robot(object):
         timeNow = time.time()
 
         for rId in (neighbourList):
-            if (prevBeats.has_key(rId)):
+            if (rId in prevBeats.keys()):
                 if misc.gt(timeNow-prevBeats[rId][1], waitRemove):
                     neighbourList.remove(rId)
 
@@ -2485,7 +2353,7 @@ class Robot(object):
             if (self.taskExec[tId] == -1):
                 if (not(misc.eq(self.taskBidTime[tId], -1.0))):
                     addTask = 1
-                pass
+                
             elif (self.taskExec[tId] == -2):
                 if (misc.gt(timeNow - self.taskFinTime[tId], waitFinish)): # tasks finished 30 seconds before are not parsed in beats
                     pass
@@ -2515,7 +2383,7 @@ class Robot(object):
             rId = msg[2]
             # ignore all beats from robots not in NL
             if (rId in (neighbourList)):
-                if (not(prevBeats.has_key(rId))):
+                if (rId not in prevBeats.keys()):
                     prevBeats[rId] = []
                 if (prevBeats[rId] != msg):
                     prevBeats[rId] = [] + msg

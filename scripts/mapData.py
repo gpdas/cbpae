@@ -200,7 +200,7 @@ class MapData():
 
     def __reconstructPath(self, cameFrom, current):
         path = []
-        if (cameFrom.has_key(current)):
+        if (current in cameFrom.keys()):
             items = self.__reconstructPath(cameFrom, cameFrom[current])
             for item in (items):
                 path.append(item)
@@ -249,7 +249,7 @@ if __name__ == "__main__":
     import readInData
     import random
 
-    (rList, tList, rConnect, mapInfo) = readInData.readInData("../data/labhouse_")
+    (robotIds, rList, taskIds, tList, mapInfo) = readInData.readInData("../data/labhouse_")
     mapInfo.sortNodes()
 
     xy         = [(random.randrange (mapInfo.roomBounds[i][0], mapInfo.roomBounds[i][1]),random.randrange (mapInfo.roomBounds[i][0], mapInfo.roomBounds[i][1])) for i in (range (mapInfo.nRooms))]

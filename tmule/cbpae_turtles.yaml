@@ -11,6 +11,7 @@ init_cmd: |
     export $var_name
     echo "  $0 -> $var_name=${!var_name}"
   }
+  export TURTLEBOT3_MODEL=burger
 
 windows:
 - name: base

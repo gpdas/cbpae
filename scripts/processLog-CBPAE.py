@@ -128,7 +128,7 @@ newStr1 = "nr, nt, "
 for idx in range(len(sets)):
     newStr1 += "set %d, " %(sets[idx])
 newStr1 += "min, max, avg, "
-print >>fTime, newStr1[:-2]
+print (newStr1[:-2], file=fTime)
 
 for idx in range(len(sets)):
     newStr1 += "set %d, " %(sets[idx])
@@ -136,10 +136,10 @@ newStr1 += "min, max, avg, "
 for idx in range(len(sets)):
     newStr1 += "set %d, " %(sets[idx])
 newStr1 += "min, max, avg"
-print >>fDist, newStr1
+print (newStr1, file=fDist)
 
 newStr11 = "nr, nt, min, max, avg, min, max, avg"
-print >>fETime, newStr11
+print (newStr11, file=fETime)
 
 for rIdx in range (nR):
     for tIdx in range (nT):
@@ -159,7 +159,7 @@ for rIdx in range (nR):
         newStr2 += "%0.3f, " %(min(avgActDist[rIdx][tIdx]))
         newStr2 += "%0.3f, " %(max(avgActDist[rIdx][tIdx]))
         newStr2 += "%0.3f " %(sum(avgActDist[rIdx][tIdx])/len(sets))
-        print >>fDist, newStr2
+        print (newStr2, file=fDist)
 
         newStr3 = "%d, %d, " %(r[rIdx], t[tIdx])
         for idx in range(len(sets)):
@@ -167,7 +167,7 @@ for rIdx in range (nR):
         newStr3 += "%0.3f, " %(min(timeExec[rIdx][tIdx]))
         newStr3 += "%0.3f, " %(max(timeExec[rIdx][tIdx]))
         newStr3 += "%0.3f" %(sum(timeExec[rIdx][tIdx])/len(sets))
-        print >>fTime, newStr3
+        print (newStr3, file=fTime)
 
         newStr4 = "%d, %d, " %(r[rIdx], t[tIdx])
         newStr4 += "%0.3f, " %(min(minResponse[rIdx][tIdx]))
@@ -176,7 +176,7 @@ for rIdx in range (nR):
         newStr4 += "%0.3f, " %(min(minExec[rIdx][tIdx]))
         newStr4 += "%0.3f, " %(max(maxExec[rIdx][tIdx]))
         newStr4 += "%0.3f" %(sum(avgExec[rIdx][tIdx])/len(sets))
-        print >>fETime, newStr4
+        print (newStr4, file=fETime)
 
 fDist.close()
 fTime.close()

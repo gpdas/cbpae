@@ -31,7 +31,7 @@ import matplotlib.pyplot
 import time
 import readInData
 import multiprocessing
-import Queue
+import queue
 import misc
 import gui
 import wx
@@ -198,15 +198,15 @@ class Cbpae():
         #===============================================================
         if (LOGGING):
             logFile = open(os.path.join(self.logs, self.fNameSmall + "_cbpae.log"), "w")
-            print >>logFile, ("--basic info: start--")
-            print >>logFile, ("%0.3f, %0.3f, %0.3f, %0.3f" %(self.mapInfo.xMin, self.mapInfo.xMax, self.mapInfo.yMin, self.mapInfo.yMax))
-            print >>logFile, ("robots, %d" %(self.nRobot))
+            print ("--basic info: start--", file=logFile)
+            print ("%0.3f, %0.3f, %0.3f, %0.3f" %(self.mapInfo.xMin, self.mapInfo.xMax, self.mapInfo.yMin, self.mapInfo.yMax), file=logFile)
+            print ("robots, %d" %(self.nRobot), file=logFile)
             for rId in (self.robotIds):
-                print >>logFile, ("%d, %0.3f, %0.3f" %(rId, self.robotList[rId].xOrg, self.robotList[rId].yOrg))
-            print >>logFile, ("tasks, %d" %(self.nTask))
+                print ("%d, %0.3f, %0.3f" %(rId, self.robotList[rId].xOrg, self.robotList[rId].yOrg), file=logFile)
+            print ("tasks, %d" %(self.nTask), file=logFile)
             for tId in (self.taskIds):
-                print >>logFile, ("%d, %0.3f, %0.3f, %0.3f, %0.3f" %(tId, self.taskList[tId].xOrg, self.taskList[tId].yOrg, self.taskList[tId].xFinish, self.taskList[tId].yFinish))
-            print >>logFile, ("--basic info: end--")
+                print ("%d, %0.3f, %0.3f, %0.3f, %0.3f" %(tId, self.taskList[tId].xOrg, self.taskList[tId].yOrg, self.taskList[tId].xFinish, self.taskList[tId].yFinish), file=logFile)
+            print ("--basic info: end--", file=logFile)
             logFile.close()
         print ("CBPAE Trial Finished!!!")
 
@@ -301,7 +301,7 @@ class Cbpae():
         # Create the initial NL
         # for limiting the communication frequency
         waitBeats = 1.0 # time between two inter-robot beats message multicasts
-        waitInit = 10.0 # wait time for initialisation
+        waitInit = 2.0 # wait time for initialisation
         waitHs = 5.0 # wait between hs message broadcasts
 
         # spend some time populating the neighbour list here
@@ -363,7 +363,7 @@ class Cbpae():
         if (neighbourList == []):
             freeTasks = 0
         else:
-            print ("r[%d]\'s neighbourlist: " %(rIndex)),
+            print ("r[%d]\'s neighbourlist:" %(rIndex), end=", ")
             print (neighbourList)
             freeTasks = robot.checkFreeTasks()
 
@@ -432,7 +432,7 @@ class Cbpae():
                     timeNow = time.time()
                     for rId in (neighbourList):
                         # make sure there is a timePrevMsg for all robot in the NL
-                        if (not(timePrevBeats.has_key(rId))):
+                        if (rId not in timePrevBeats.keys()):
                             timePrevBeats[rId] = robot.timeInit
                         # send BEATs if the timePrevMsg is older by msgTime than current time
                         if (misc.gt((timeNow - timePrevBeats[rId]), waitBeats)):
@@ -544,7 +544,7 @@ class Cbpae():
                                         if (bidLost == 1):
                                             bidUpdate += 1
                                         else:
-                                            if (not(rIds.has_key(msg[0]))):
+                                            if (msg[0] not in rIds.keys()):
                                                 robot.msgCount += 1
                                                 rIds[msg[0]] = 0
                                 # if the current bid is not lost, update the current bid or place a new bid on a better task
@@ -578,7 +578,7 @@ class Cbpae():
                                         if (bidLost == 1):
                                             bidUpdate += 1
                                         else:
-                                            if (not(rIds.has_key(msg[0]))):
+                                            if (msg[0] not in rIds.keys()):
                                                 robot.msgCount += 1
                                                 rIds[msg[0]] = 0
                                 # if the current bid is not lost, update the current bid or place a new bid on a better task
@@ -602,7 +602,7 @@ class Cbpae():
                                         if (bidLost == 1):
                                             bidUpdate += 1
                                         else:
-                                            if (not(rIds.has_key(msg[0]))):
+                                            if (msg[0] not in rIds.keys()):
                                                 robot.msgCount += 1
                                                 rIds[msg[0]] = 0
                                 # if the current bid is not lost, update the current bid or place a new bid on a better task
@@ -700,7 +700,7 @@ class Cbpae():
                         timeNow = time.time()
                         for rId in (neighbourList):
                             # make sure there is a timePrevMsg for all robot in the NL
-                            if (not(timePrevBeats.has_key(rId))):
+                            if (rId not in timePrevBeats.keys()):
                                 timePrevBeats[rId] = robot.timeInit
                             # send BEATs if the timePrevMsg is older by msgTime than current time
                             if (misc.gt((timeNow - timePrevBeats[rId]), waitBeats)):
@@ -724,78 +724,78 @@ class Cbpae():
         #=======================================================================
         if (LOGGING):
             print ("r[%d] starting logging" %(rIndex))
-            logFile = open(os.path.join(self.logs, string.join((self.fNameSmall, str(rIndex), "cbpae.log"), "_")), "w")
+            logFile = open(os.path.join(self.logs, '_'.join((self.fNameSmall, str(rIndex), "cbpae.log"))), "w")
 
             rDist = 0
             lenX = len(robot.x)
             for m in (range (1, lenX, 1)):
                 rDist += misc.getDist(robot.x[m-1], robot.y[m-1], robot.x[m], robot.y[m])
 
-            print >> logFile, ("Robot, %d" %(rIndex))
-            print >> logFile, ("Init Time, %.4f" %(robot.timeInit))
-            print >> logFile, ("Start Time, %.4f" %(timeStart))
-            print >> logFile, ("Stop Time, %.4f" %(timeStop))
-            print >> logFile, ("Exec Time, %.4f" %(timeExec))
-            print >> logFile, ("No of Tasks Allocated, %d" %(robot.nTaskAllocated))
+            print ("Robot, %d" %(rIndex), file=logFile)
+            print ("Init Time, %.4f" %(robot.timeInit), file=logFile)
+            print ("Start Time, %.4f" %(timeStart), file=logFile)
+            print ("Stop Time, %.4f" %(timeStop), file=logFile)
+            print ("Exec Time, %.4f" %(timeExec), file=logFile)
+            print ("No of Tasks Allocated, %d" %(robot.nTaskAllocated), file=logFile)
 
             allocatedTasks = []
-            print >> logFile, ("Tasks Allocated, "),
+            print ("Tasks Allocated", end=", ", file=logFile)
             if (robot.nTaskAllocated != 0):
                 for j in (range (0, robot.nTaskAllocated-1, 1)):
-                    print >> logFile, ("%d, " %(robot.taskBidOrder[j])),
+                    print ("%d" %(robot.taskBidOrder[j]), end=", ", file=logFile)
                     allocatedTasks.append(robot.taskBidOrder[j])
-                print >> logFile, (robot.taskBidOrder[robot.nTaskAllocated-1])
+                print (robot.taskBidOrder[robot.nTaskAllocated-1], file=logFile)
                 allocatedTasks.append(robot.taskBidOrder[robot.nTaskAllocated-1])
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Task Bid Time, "),
+            print ("Task Bid Time", end=", ", file=logFile)
             if (robot.nTaskAllocated > 0):
                 for t in (allocatedTasks):
-                    print >> logFile, ("%.4f, " %(robot.taskBidTime[t])),
-                print >> logFile, ("")
+                    print ("%.4f" %(robot.taskBidTime[t]), end=", ", file=logFile)
+                print ("", file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Task Bid Value, "),
+            print ("Task Bid Value", end=", ", file=logFile)
             if (robot.nTaskAllocated > 0):
                 for t in (allocatedTasks):
-                    print >> logFile, ("%.4f, " %(robot.taskBidVal[t])),
-                print >> logFile, ("")
+                    print ("%.4f" %(robot.taskBidVal[t]), end=", ", file=logFile)
+                print ("", file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Navigation to Task: Start Time, "),
+            print ("Navigation to Task: Start Time", end=", ", file=logFile)
             if (robot.nTaskAllocated > 0):
                 for j in (range (0, robot.nTaskAllocated-1, 1)):
-                    print >> logFile, ("%.4f, " %(robot.taskStartTime[j][0] - robot.timeInit)),
-                print >> logFile, ("%.4f" %(robot.taskStartTime[robot.nTaskAllocated-1][0] - robot.timeInit))
+                    print ("%.4f" %(robot.taskStartTime[j][0] - robot.timeInit), end=", ", file=logFile)
+                print ("%.4f" %(robot.taskStartTime[robot.nTaskAllocated-1][0] - robot.timeInit), file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Navigation to Task: Stop Time, "),
+            print ("Navigation to Task: Stop Time", end=", ", file=logFile)
             if (robot.nTaskAllocated > 0):
                 for j in (range (0, robot.nTaskAllocated-1, 1)):
-                    print >> logFile, ("%.4f, " %(robot.taskEndTime[j][0] - robot.timeInit)),
-                print >> logFile, ("%.4f" %(robot.taskEndTime[robot.nTaskAllocated-1][0] - robot.timeInit))
+                    print ("%.4f" %(robot.taskEndTime[j][0] - robot.timeInit), end=", ", file=logFile)
+                print ("%.4f" %(robot.taskEndTime[robot.nTaskAllocated-1][0] - robot.timeInit), file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Execution of Task: Start Time, "),
+            print ("Execution of Task: Start Time", end=", ", file=logFile)
             if (robot.nTaskAllocated > 0):
                 for j in (range (0, robot.nTaskAllocated-1, 1)):
-                    print >> logFile, ("%.4f, " %(robot.taskStartTime[j][1] - robot.timeInit)),
-                print >> logFile, ("%.4f" %(robot.taskStartTime[robot.nTaskAllocated-1][1] - robot.timeInit))
+                    print ("%.4f" %(robot.taskStartTime[j][1] - robot.timeInit), end=", ", file=logFile)
+                print ("%.4f" %(robot.taskStartTime[robot.nTaskAllocated-1][1] - robot.timeInit), file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Execution of Task: Stop Time, "),
+            print ("Execution of Task: Stop Time", end=", ", file=logFile)
             if (robot.nTaskAllocated > 0):
                 for j in (range (0, robot.nTaskAllocated-1, 1)):
-                    print >> logFile, ("%.4f, " %(robot.taskEndTime[j][1] - robot.timeInit)),
-                print >> logFile, ("%.4f" %(robot.taskEndTime[robot.nTaskAllocated-1][1] - robot.timeInit))
+                    print ("%.4f" %(robot.taskEndTime[j][1] - robot.timeInit), end=", ", file=logFile)
+                print ("%.4f" %(robot.taskEndTime[robot.nTaskAllocated-1][1] - robot.timeInit), file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
             eTaskAllocated = 0
             emergencyTasks = []
@@ -812,45 +812,45 @@ class Cbpae():
                         emergencyTaskStart.append(robot.taskStartTime[j][0] - robot.taskList[j].timeInit)
                         emergencyTaskStop.append(robot.taskStartTime[j][1] - robot.taskList[j].timeInit)
 
-            print >> logFile, ("Emergency Tasks Allocated, %d" %(eTaskAllocated))
+            print ("Emergency Tasks Allocated, %d" %(eTaskAllocated), file=logFile)
 
-            print >> logFile, ("Emergency Tasks, "),
+            print ("Emergency Tasks", end=", ", file=logFile)
             if (eTaskAllocated > 0):
                 for j in (range (0, eTaskAllocated-1, 1)):
-                    print >> logFile, ("%d, " %(emergencyTasks[j])),
-                print >> logFile, ("%d" %(emergencyTasks[eTaskAllocated-1]))
+                    print ("%d" %(emergencyTasks[j]), end=", ", file=logFile)
+                print ("%d" %(emergencyTasks[eTaskAllocated-1]), file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Emergency Task On-Time, "),
+            print ("Emergency Task On-Time", end=", ", file=logFile)
             if (eTaskAllocated > 0):
                 for j in (range (0, eTaskAllocated-1, 1)):
-                    print >> logFile, ("%.4f, " %(emergencyTaskOn[j])),
-                print >> logFile, ("%.4f" %(emergencyTaskOn[eTaskAllocated-1]))
+                    print ("%.4f" %(emergencyTaskOn[j]), end=", ", file=logFile)
+                print ("%.4f" %(emergencyTaskOn[eTaskAllocated-1]), file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Emergency Task Start Time, "),
+            print ("Emergency Task Start Time", end=", ", file=logFile)
             if (eTaskAllocated > 0):
                 for j in (range (0, eTaskAllocated-1, 1)):
-                    print >> logFile, ("%.4f, " %(emergencyTaskStart[j])),
-                print >> logFile, ("%.4f" %(emergencyTaskStart[eTaskAllocated-1]))
+                    print ("%.4f" %(emergencyTaskStart[j]), end=", ", file=logFile)
+                print ("%.4f" %(emergencyTaskStart[eTaskAllocated-1]), file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Emergency Task Stop Time, "),
+            print ("Emergency Task Stop Time", end=", ", file=logFile)
             if (eTaskAllocated > 0):
                 for j in (range (0, eTaskAllocated-1, 1)):
-                    print >> logFile, ("%.4f, " %(emergencyTaskStop[j])),
-                print >> logFile, ("%.4f" %(emergencyTaskStop[eTaskAllocated-1]))
+                    print ("%.4f" %(emergencyTaskStop[j]), end=", ", file=logFile)
+                print ("%.4f" %(emergencyTaskStop[eTaskAllocated-1]), file=logFile)
             else:
-                print >> logFile, ("")
+                print ("", file=logFile)
 
-            print >> logFile, ("Distance traveled, %0.3f " %(rDist))
+            print ("Distance traveled, %0.3f " %(rDist), file=logFile)
 
             # robot coordinates
             for idx in (range (0,len(robot.x))):
-                print >> logFile, ("%0.3f, %0.3f" %(robot.x[idx], robot.y[idx]))
+                print ("%0.3f, %0.3f" %(robot.x[idx], robot.y[idx]), file=logFile)
 
             logFile.close()
 
@@ -875,13 +875,13 @@ class Cbpae():
                         lockStatus = iRMsg[rId][1].acquire(0)
                     except:
                         print ("error in acquiring iRMsgLock[%d] by robot[%d]" %(rId, rIndex))
-                        pass
+                        
                     else:
                         if (lockStatus):
                             try:
                                 iRMsg[rId][0].put_nowait([robot.index, robot.taskAlloc, robot.taskBidVal, robot.taskExec, robot.taskBidTime, robot.taskDropTime])
-                            except Queue.Full:
-                                print ("inter-robot Queue full")
+                            except queue.Full:
+                                print ("inter-robot queue full")
                                 iRMsg[rId][1].release()
                             except:
                                 iRMsg[rId][1].release()
@@ -978,7 +978,7 @@ class Cbpae():
         y = []
 
         for i in (range (nRobot)):
-            fHandle = open(os.path.join(logsDir, string.join((fNameSmall, str(i), "cbpae.log"), "_")), "r")
+            fHandle = open(os.path.join(logsDir, '_'.join((fNameSmall, str(i), "cbpae.log"))), "r")
             rId.append(int((fHandle.readline().strip().split(","))[1],10))
 
             timeInit.append(float((fHandle.readline().strip().split(","))[1]))
@@ -1081,61 +1081,61 @@ class Cbpae():
         else:
             avgDistAct = 0
 
-        logFile = open(os.path.join(logsDir, string.join([fNameSmall,"cbpae.log"], "_")), "a")
-        print >> logFile, ("--summary: start--")
-        print >> logFile, ("Number of active robots = %d" %sum(nRAct))
-        print >> logFile, ("Tasks assigned to each robot:")
+        logFile = open(os.path.join(logsDir, '_'.join([fNameSmall,"cbpae.log"])), "a")
+        print ("--summary: start--", file=logFile)
+        print ("Number of active robots = %d" %sum(nRAct), file=logFile)
+        print ("Tasks assigned to each robot:", file=logFile)
         for i in (range (0, nRobot, 1)):
-            print >> logFile, ("Robot[%d]:"%rId[i])
-            print >>logFile, ("Tasks: ["),
+            print ("Robot[%d]:"%rId[i], file=logFile)
+            print ("Tasks: [", end="", file=logFile)
             for j in (range (0, nTaskAlloc[i], 1)):
-                print >> logFile, ("%d, " %(rTasks[i][j])),
-            print >> logFile, ("]")
-            print >>logFile, ("BidTime: ["),
+                print ("%d" %(rTasks[i][j]), end=", ", file=logFile)
+            print ("]", file=logFile)
+            print ("BidTime: [", end="", file=logFile)
             for j in (range (0, nTaskAlloc[i], 1)):
-                print >> logFile, ("%.4f, "%(bidTime[i][j])),
-            print >> logFile, ("]")
-            print >>logFile, ("BidVal: ["),
+                print ("%.4f" %(bidTime[i][j]), end=", ", file=logFile)
+            print ("]", file=logFile)
+            print ("BidVal: [", end="", file=logFile)
             for j in (range (0, nTaskAlloc[i], 1)):
-                print >> logFile, ("%.4f, "%(bidVal[i][j])),
-            print >> logFile, ("]")
-            print >>logFile, ("NavStart: ["),
+                print ("%.4f" %(bidVal[i][j]), end=", ", file=logFile)
+            print ("]", file=logFile)
+            print ("NavStart: [", end="", file=logFile)
             for j in (range (0, nTaskAlloc[i], 1)):
-                print >> logFile, ("%.4f, "%(tNavStart[i][j])),
-            print >> logFile, ("]")
-            print >>logFile, ("NavEnd: ["),
+                print ("%.4f" %(tNavStart[i][j]), end=", ", file=logFile)
+            print ("]", file=logFile)
+            print ("NavEnd: [", end="", file=logFile)
             for j in (range (0, nTaskAlloc[i], 1)):
-                print >> logFile, ("%.4f, "%(tNavStop[i][j])),
-            print >> logFile, ("]")
-            print >>logFile, ("ExecStart: ["),
+                print ("%.4f" %(tNavStop[i][j]), end=", ", file=logFile)
+            print ("]", file=logFile)
+            print ("ExecStart: [", end="", file=logFile)
             for j in (range (0, nTaskAlloc[i], 1)):
-                print >> logFile, ("%.4f, "%(tExecStart[i][j])),
-            print >> logFile, ("]")
-            print >>logFile, ("ExecEnd: ["),
+                print ("%.4f" %(tExecStart[i][j]), end=", ", file=logFile)
+            print ("]", file=logFile)
+            print ("ExecEnd: [", end="", file=logFile)
             for j in (range (0, nTaskAlloc[i], 1)):
-                print >> logFile, ("%.4f, "%(tExecStop[i][j])),
-            print >> logFile, ("]")
-            print >> logFile, ("Distance travelled = %0.4f" %(rDist[i]))
-            print >> logFile, ("Tasks Allocated = %d"  %(nTaskAlloc[i]))
-        print >> logFile, ("totalDist = %0.3f" %(totalDist))
-        print >> logFile, ("avgDist = %0.3f" %(avgDist))
-        print >> logFile, ("avgDistAct = %0.3f" %(avgDistAct))
-        print >>logFile, ("Total time of execution = %0.3f" %(max(execTime)))
+                print ("%.4f" %(tExecStop[i][j]), end=", ", file=logFile)
+            print ("]", file=logFile)
+            print ("Distance travelled = %0.4f" %(rDist[i]), file=logFile)
+            print ("Tasks Allocated = %d"  %(nTaskAlloc[i]), file=logFile)
+        print ("totalDist = %0.3f" %(totalDist), file=logFile)
+        print ("avgDist = %0.3f" %(avgDist), file=logFile)
+        print ("avgDistAct = %0.3f" %(avgDistAct), file=logFile)
+        print ("Total time of execution = %0.3f" %(max(execTime)), file=logFile)
         if (len(eTasks) != 0):
-            print >> logFile, ("Emergency Tasks = %d" %(len(eTasks)))
-            print >> logFile, ("Minimum Response Time = %0.3f" %(min(eTaskResponseTime)))
-            print >> logFile, ("Maximum Response Time = %0.3f" %(max(eTaskResponseTime)))
-            print >> logFile, ("Average Response Time = %0.3f" %(sum(eTaskResponseTime)/len(eTaskResponseTime)))
-            print >> logFile, ("Minimum Execution Time = %0.3f" %(min(eTaskExecutionTime)))
-            print >> logFile, ("Maximum Execution Time = %0.3f" %(max(eTaskExecutionTime)))
-            print >> logFile, ("Average Execution Time = %0.3f" %(sum(eTaskExecutionTime)/len(eTaskExecutionTime)))
-        print >> logFile, ("--summary: end--")
-        print >> logFile, ("--coordinates of robot paths: start--")
+            print ("Emergency Tasks = %d" %(len(eTasks)), file=logFile)
+            print ("Minimum Response Time = %0.3f" %(min(eTaskResponseTime)), file=logFile)
+            print ("Maximum Response Time = %0.3f" %(max(eTaskResponseTime)), file=logFile)
+            print ("Average Response Time = %0.3f" %(sum(eTaskResponseTime)/len(eTaskResponseTime)), file=logFile)
+            print ("Minimum Execution Time = %0.3f" %(min(eTaskExecutionTime)), file=logFile)
+            print ("Maximum Execution Time = %0.3f" %(max(eTaskExecutionTime)), file=logFile)
+            print ("Average Execution Time = %0.3f" %(sum(eTaskExecutionTime)/len(eTaskExecutionTime)), file=logFile)
+        print ("--summary: end--", file=logFile)
+        print ("--coordinates of robot paths: start--", file=logFile)
         for i in (range (0, nRobot, 1)):
-            print >> logFile, ("--robot: %d--" %rId[i])
+            print ("--robot: %d--" %rId[i], file=logFile)
             for idx in (range (0,len(x[i]))):
-                print >> logFile, ("%0.3f,%0.3f" %(x[i][idx], y[i][idx]))
-        print >> logFile, ("--coordinates of robot paths: end--")
+                print ("%0.3f,%0.3f" %(x[i][idx], y[i][idx]), file=logFile)
+        print ("--coordinates of robot paths: end--", file=logFile)
         logFile.close()
 
         ## plotting the paths
@@ -1199,9 +1199,9 @@ class Cbpae():
         spfig3.set_title("Robot Bid Time and Bid Value")
         spfig3.grid(False)
 
-        fig1.savefig(os.path.join(plotsDir, string.join((fNameSmall, "path", "cbpae", self.version+".png"), "_")))
-        fig2.savefig(os.path.join(plotsDir, string.join((fNameSmall, "exec_time", "cbpae", self.version+".png"), "_")))
-        fig3.savefig(os.path.join(plotsDir, string.join((fNameSmall, "bid_time_val", "cbpae", self.version+".png"), "_")))
+        fig1.savefig(os.path.join(plotsDir, '_'.join((fNameSmall, "path", "cbpae", self.version+".png"))))
+        fig2.savefig(os.path.join(plotsDir, '_'.join((fNameSmall, "exec_time", "cbpae", self.version+".png"))))
+        fig3.savefig(os.path.join(plotsDir, '_'.join((fNameSmall, "bid_time_val", "cbpae", self.version+".png"))))
 
 #        matplotlib.pyplot.show()
 
@@ -1214,7 +1214,7 @@ class Cbpae():
 if (__name__ == "__main__"):
 
     if len(sys.argv) <= 1:
-        print "usage: cbpae.py <path_to_data_file>"
+        print ("usage: cbpae.py <path_to_data_file>")
     else:
         fName     = sys.argv[1]
         

@@ -124,7 +124,8 @@ class PlotTabPanel(wx.Panel):
 
         TIMER_ID = wx.NewId()
         self.t = wx.Timer(self, TIMER_ID)
-        wx.EVT_TIMER(self, TIMER_ID, self.onTimer) # call onTimer when timer event occurs
+        self.Bind(wx.EVT_TIMER, self.onTimer) # call onTimer when timer event occurs
+#        wx.EVT_TIMER(self, TIMER_ID, self.onTimer) # call onTimer when timer event occurs
         self.t.Start(1000)
 
     def initPlotData(self):
