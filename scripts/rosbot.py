@@ -6,7 +6,7 @@ Created on: Day Mon DD HH:MM:SS YYYY
 @author: gpdas
 """
 import time
-import Queue
+import queue
 import copy
 import multiprocessing
 import task
@@ -17,6 +17,7 @@ import move_base_msgs.msg
 import nav_msgs.msg
 import actionlib
 import std_msgs.msg
+import random
 
 class Robot(robot.Robot):
     """
@@ -38,8 +39,8 @@ class Robot(robot.Robot):
         
         self.xPos = xCord
         self.yPos = yCord
-        self.odomSub = rospy.Subscriber(self.ns+"/odometry/base_raw", nav_msgs.msg.Odometry, self.odomCB)
-        self.pub = rospy.Publisher(self.ns+"/chatter", std_msgs.msg.String)
+        self.odomSub = rospy.Subscriber(self.ns+"/odom", nav_msgs.msg.Odometry, self.odomCB)
+        self.pub = rospy.Publisher(self.ns+"/chatter", std_msgs.msg.String, queue_size=5)
 
     def odomCB(self, msg):
         """
@@ -73,7 +74,7 @@ class Robot(robot.Robot):
                         yNew = msgNew[1]
                         stage = msgNew[2]
                         stat = msgNew[3]
-                    except Queue.Empty:
+                    except queue.Empty:
                         break
                     else:
                         self.x.append(xNew)
@@ -108,7 +109,7 @@ class Robot(robot.Robot):
                         yNew = msgNew[1]
                         stage = msgNew[2]
                         stat = msgNew[3]
-                    except Queue.Empty:
+                    except queue.Empty:
                         break
                     else:
                         self.x.append(xNew)
@@ -268,6 +269,10 @@ class Robot(robot.Robot):
             None
         Description:
             method to control the navigation of a robot to the target location"""
+        
+#        self.mbClient = actionlib.SimpleActionClient(self.ns+"/move_base", move_base_msgs.msg.MoveBaseAction)
+        self.mbClient.wait_for_server()
+        rospy.loginfo("%s has movebase client ready", self.ns)
         # task is allocated and the robot has to travel to the task location
         # robot moves in the direction of the task from the current location
         # keep on track: regularly check the position and orientation with respect to the task location
@@ -326,9 +331,14 @@ class Robot(robot.Robot):
                     goal.target_pose.pose.position.x = tX
                     goal.target_pose.pose.position.y = tY
                     goal.target_pose.pose.orientation.w = 1
+                    rospy.loginfo("sending goal now for %s", self.ns)
+                    rospy.loginfo(goal)
                     self.mbClient.send_goal(goal, done_cb=self.doneCB)
                     time.sleep(0.1)
                     self.goalSent = True
+                
+                self.pub.publish("chatter %d" %(random.randint(1,10)))
+                time.sleep(0.5)
 
                 xNew = self.xPos
                 yNew = self.yPos
@@ -347,7 +357,7 @@ class Robot(robot.Robot):
                 # stop the current execution with a stat return of 2
                 try:
                     com = cmdQ.get_nowait() # command from main process. 1-> stop current task
-                except Queue.Empty:
+                except queue.Empty:
                     pass
                 else:
                     if (com == 1):
@@ -404,6 +414,7 @@ class Robot(robot.Robot):
     def checkTaskFinish(self, rX, rY, tX, tY, taskZone):
         """ checks whether the robot has reached E-near the task location"""
         if self.goalSent and self.mbFinished:
+            self.mbFinished = False
             return 1
         else:
             return 0
@@ -473,7 +484,7 @@ class Robot(robot.Robot):
             time.sleep(0.1)
             try:
                 cmd = cmdQ.get_nowait()
-            except Queue.Empty:
+            except queue.Empty:
                 pass
             else:
                 if (cmd == 1):
