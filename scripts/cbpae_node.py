@@ -15,9 +15,9 @@ import os
 if __name__ == "__main__":
     rospy.init_node("cbpae_node")
     
-    print sys.argv
+    print (sys.argv)
     if len(sys.argv) <= 1:
-        print "usage: cbpae.py <path_to_data_file>"
+        print ("usage: cbpae.py <path_to_data_file>")
     else:
         fName     = sys.argv[1]
         
