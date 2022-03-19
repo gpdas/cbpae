@@ -72,10 +72,7 @@ class Cbpae():
         self.nRobot = len(self.robotIds)
         self.nTask = len(self.taskIds)
 
-    def run(self):
-        """ generates a new process to handle all robot processes.
-            checks for keyboard interrupt to exit gracefully"""
-
+    def prepVars(self):
         robotProc = {} # robot processes as dict
         iRMsg = {} # inter robot message queues and locks
         robotStat = {} # robot process finish status back to main process
@@ -111,32 +108,41 @@ class Cbpae():
             # populating message queues in robotInfoQ
             # each robot sends its coordinates which are then retrieved and plotted in GUI
             robotInfo[rId] = multiprocessing.Queue()
-
+        
         # set the timeInit for all robots and tasks to monitor the activation time
         timeInit     = time.time()
         for rId in (self.robotIds):
             self.robotList[rId].setInitTime(timeInit)
+            
+        return (robotProc, iRMsg, robotStat, robotInfo, robotCmd, bcMsg, cbpaeRun, wsInfo)
 
+    def startBroadcaster(self, cbpaeRun, bcMsg, iRMsg):
         # create broadcasterProcess
-        broadcasterProcess = multiprocessing.Process(target=self.broadCaster, args=(cbpaeRun, bcMsg, iRMsg))
-        broadcasterProcess.start()
-        print ("broadcaster pid = %d" %(broadcasterProcess.pid))
-
+        broadcasterProc = multiprocessing.Process(target=self.broadCaster, args=(cbpaeRun, bcMsg, iRMsg))
+        broadcasterProc.start()
+        print ("broadcaster pid = %d" %(broadcasterProc.pid))
+        return broadcasterProc
+    
+    def startRobots(self, robotProc, iRMsg, bcMsg, robotInfo, robotCmd, robotStat):
         # create robotProcesses
         for rId in (self.robotIds):
             robotProc[rId] = multiprocessing.Process(target=self.robotProcess, args=(self.robotList[rId], iRMsg, bcMsg[rId], robotInfo[rId], robotCmd[rId], robotStat[rId]))
-        # start the robotProcesses
+            # start the robotProcesses
             robotProc[rId].start()
             print ("robot[%d] pid = %d" %(rId, robotProc[rId].pid))
-
+        return robotProc
+        
+    def startGui(self, wsInfo, robotInfo, robotCmd):
         # start the gui process
         # gui app and process
         guiApp = wx.App(False)
         guiFrame = gui.MyFrame(parent=None, ID=100, title="CBPAE "+self.version, wsInfo=wsInfo, robotInfo=robotInfo, robotCmd=robotCmd)
         guiFrame.Show(True)
-        guiP = multiprocessing.Process(target=guiApp.MainLoop)
-        guiP.start()
-
+        guiProc = multiprocessing.Process(target=guiApp.MainLoop)
+        guiProc.start()
+        return guiProc
+    
+    def checkRJoinable(self, robotProc, robotStat):
         # looking for robotProcesses which have finished execution
         rJoinable = []
         while (True):
@@ -164,6 +170,9 @@ class Cbpae():
                 break
         print ("received stop status from all robotProcesses")
 
+        return rJoinable
+    
+    def stopBroadcaster(self, cbpaeRun):
         # sending stop signal to broadcasterProcess
         while (True):
             try:
@@ -175,7 +184,8 @@ class Cbpae():
                     cbpaeRun[0].value = 1
                     cbpaeRun[1].release()
                     break
-
+    
+    def clearQueues(self, iRMsg, robotCmd, robotInfo):
         # reading all data from iRMsgQs before the robot processes are joined
         # if data is left in the queue, the subprocess won't be joined
         for rId in (self.robotIds):
@@ -183,7 +193,8 @@ class Cbpae():
 
             cmds = misc.recvMsg(robotCmd[rId])
             infos = misc.recvMsg(robotInfo[rId])
-
+    
+    def joinRobotProc(self, robotProc):
         # joining robot processes
         for rId in (self.robotIds):
             print ("robotProc[%d] joining now." %(rId))
@@ -192,7 +203,8 @@ class Cbpae():
             if (robotProc[rId].is_alive()):
                 print ("robotProc[%d] joining failed. Terminating now." %(rId))
                 robotProc[rId].terminate()
-
+    
+    def logBasicInfo(self):
         #===============================================================
         # Combined Logging
         #===============================================================
@@ -208,7 +220,38 @@ class Cbpae():
                 print ("%d, %0.3f, %0.3f, %0.3f, %0.3f" %(tId, self.taskList[tId].xOrg, self.taskList[tId].yOrg, self.taskList[tId].xFinish, self.taskList[tId].yFinish), file=logFile)
             print ("--basic info: end--", file=logFile)
             logFile.close()
+            
+    def run(self):
+        """ generates a new process to handle all robot processes.
+            checks for keyboard interrupt to exit gracefully"""
+
+        (robotProc, iRMsg, robotStat, robotInfo, robotCmd, bcMsg, cbpaeRun, wsInfo) = self.prepVars()
+
+        broadcasterProc = self.startBroadcaster(cbpaeRun, bcMsg, iRMsg)
+
+# =============================================================================
+#         # pass additional queues to the robot processes by overloading this method
+# =============================================================================
+        robotProc = self.startRobots(robotProc, iRMsg, bcMsg, robotInfo, robotCmd, robotStat)
+        
+        guiProc = self.startGui(wsInfo, robotInfo, robotCmd)
+
+# =============================================================================
+#         # This is the main loop checking robotProcs
+# =============================================================================
+        rJoinable = self.checkRJoinable(robotProc, robotStat) 
+
+        self.stopBroadcaster(cbpaeRun)
+        
+        self.clearQueues(iRMsg, robotCmd, robotInfo)
+
+        self.joinRobotProc(robotProc)
+
+        self.logBasicInfo()
+
         print ("CBPAE Trial Finished!!!")
+        
+        
 
     def broadCaster(self, cbpaeRun=[], bcMsg = {}, iRMsg={}):
         # cbpaeRun = [mp.Value(), mp.Lock()]
@@ -252,14 +295,7 @@ class Cbpae():
                 for rId in (self.robotIds):
                     misc.sendMsg(iRMsg[rId][0], iRMsg[rId][1], msg)
 
-    def robotProcess(self, robot, iRMsg, bcMsg, robotInfo, robotCmd, robotStat):
-        """"robot process: handles the process of a single robot"""
-        rIndex = robot.index
-        print ("r[%d] starting the CBPAE" %(rIndex))
-
-        startRecvd = 0
-        stopRecvd = 0
-        # if gui is enabled, wait for the start command.
+    def waitForStartButton(self, robotCmd, startRecvd, stopRecvd):
         while (True):
             cmds = misc.recvMsg(robotCmd)
             for cmd in (cmds):
@@ -276,7 +312,8 @@ class Cbpae():
                 break
             time.sleep(0.1)
 
-        # progress from here only if the robot is active
+    def checkRobotActive(self, robot, iRMsg):
+        rIndex = robot.index
         # keep clearing the queue till then without processing the received msgs
         while (True):
             robot.checkStatus()
@@ -287,9 +324,8 @@ class Cbpae():
                 msgs = misc.recvMsg(iRMsg[rIndex][0]) # keep clearing the message queue until active - avoids queue full
                 time.sleep(0.1)
 
-        # update active status all tasks
-        robot.checkActiveTasks()
-
+    def populateNeighbours(self, robot, iRMsg, bcMsg, robotCmd, waitInit, waitHs, stopRecvd):
+        rIndex = robot.index
         # iRMsg
         # {rid:[iRMsgQ[rid][0], iRMsgLock[rid][1]], ... } currently used instead of neighbourInfo <ip,port>
         neighbourInfo = {} # {rid: [ip, port] ... } dynamically populated whenever a robot is added to the NL
@@ -297,19 +333,13 @@ class Cbpae():
 
         tempBeats = [] # used for temperory storage of procesed beats msgs
         prevBeats = {} # dict of previous beats sent to neighbours. used to avoid unwanted beats sending
-
-        # Create the initial NL
-        # for limiting the communication frequency
-        waitBeats = 1.0 # time between two inter-robot beats message multicasts
-        waitInit = 2.0 # wait time for initialisation
-        waitHs = 5.0 # wait between hs message broadcasts
-
+        
         # spend some time populating the neighbour list here
         timeStart = time.time()
         timeNow = 0 + timeStart
         timePrevHs = 0
 
-        # wait for some time for populating the NL initially
+        # wait for some time for populating the neighbour list initially
         while (misc.lt(timeNow-timeStart, waitInit)):
             # send hs
             if (misc.gt(timeNow-timePrevHs, waitHs)): # braodcast hs in every 2 seconds
@@ -359,72 +389,305 @@ class Cbpae():
             if (stopRecvd == 1):
                 break
             timeNow = time.time()
+            
+        return (neighbourList, tempBeats, prevBeats, stopRecvd, timeStart, timeNow, timePrevHs)
 
+    def getInitFreeTasks(self, robot, neighbourList):
+        rIndex = robot.index
         if (neighbourList == []):
             freeTasks = 0
         else:
-            print ("r[%d]\'s neighbourlist:" %(rIndex), end=", ")
+            print ("r[%d]\'s neighbourlist: " %(rIndex), end="")
             print (neighbourList)
             freeTasks = robot.checkFreeTasks()
 
         # initialising variables
         print ("r[%d] has found %d free tasks" %(rIndex, freeTasks))
-        bidLost = 0
-        loopCount = 0
-        timePrevBeats = {} # time at which the previous beats from this robot was sent
-        prevIdx = 0
-
-        while (freeTasks > 0):
-            # break if the client is not connected
-            if (((robot.rType == "player") or (robot.rType == "playerstage")) and (robot.rClient == None)):
+        return freeTasks
+    
+    def updatePoseGui(self, robot, robotInfo, prevIdx):
+        #===============================================================
+        # copying robot information to robotInfoQ -> to gui
+        #===============================================================
+        newIdx = len(robot.x)
+        for idx in (range (prevIdx, newIdx)):
+            misc.sendMsg(robotInfo, None, [robot.x[idx], robot.y[idx]])
+        prevIdx = newIdx + 0
+        return prevIdx
+    
+    def safeRobotStop(self, robot, robotCmd, stopRecvd):
+        #===============================================================
+        # reading commands for safe exit from execution
+        #===============================================================
+        cmds = misc.recvMsg(robotCmd)
+        for cmd in (cmds):
+            if (cmd == 1):
+                stopRecvd = 1
                 break
 
-            # update task active status in every loop
-            robot.checkActiveTasks()
+        if (stopRecvd == 1):
+            if (robot.taskProcess != None):
+#                print ("got stop command at robotProcess")
+                robot.stopExecution()
+                # wait until the robot process is finished
+                while (True):
+                    time.sleep(0.1)
+                    if (not(robot.taskProcess.is_alive())):
+                        break
+                return (stopRecvd, True)
+            else:
+                return (stopRecvd, True)
+        else:
+            return (stopRecvd, False)
 
-            # update NL - remove neighbours not sending beats from NL
-            neighbourList = robot.updateNeighbourList(neighbourList, prevBeats)
-            robot.nNeighbour = len(neighbourList)
+    def comWrite(self, robot, iRMsg, bcMsg, neighbourList, waitBeats, waitHs, timePrevBeats, timePrevHs):
+        rIndex = robot.index
+        # send beats to NL
+        if (neighbourList != []):
+            # prepare beats
+            beats = robot.encodeBEATs(neighbourList)
+            timeNow = time.time()
+            for rId in (neighbourList):
+                # make sure there is a timePrevMsg for all robot in the NL
+                if (rId not in timePrevBeats.keys()):
+                    timePrevBeats[rId] = robot.timeInit
+                # send BEATs if the timePrevMsg is older by msgTime than current time
+                if (misc.gt((timeNow - timePrevBeats[rId]), waitBeats)):
+                    if (rId != rIndex):
+                        timePrevBeats[rId] = beats[1]
+                        misc.sendMsg(iRMsg[rId][0], iRMsg[rId][1], beats)
 
-            #===============================================================
-            # copying robot information to robotInfoQ -> to gui
-            #===============================================================
-            newIdx = len(robot.x)
-            for idx in (range (prevIdx, newIdx)):
-                misc.sendMsg(robotInfo, None, [robot.x[idx], robot.y[idx]])
-            prevIdx = newIdx + 0
+        # send hs
+        if (misc.gt(timeNow-timePrevHs, waitHs)): # braodcast hs in every 2 seconds
+            hs = robot.encodeHS()
+#                    print hs
+            misc.sendMsg(bcMsg, None, hs)
+            timePrevHs = 0 + hs[1]
+            
+        return (timeNow, timePrevBeats, timePrevHs)
 
-            time.sleep(.1)
-            if (robot.active == 1):
+    def comRead(self, robot, iRMsg, neighbourList, prevBeats):
+        # all msgs sent to this robot will be received here
+        rIndex = robot.index
+        # reset beats
+        beats = []
+        msgs = misc.recvMsg(iRMsg[rIndex][0])
+        for msg in (msgs):
+            if (msg[0] == "hs"):
+                (rId, hsAck) = robot.encodeHSACK(msg, neighbourList)
+                if (rId != None):
+                    neighbourList.append(rId)
+                    misc.sendMsg(iRMsg[rId][0], iRMsg[rId][1], hsAck)
+            elif (msg[0] == "beats"):
+                beats.append(msg)
+            elif (msg[0] == "hsack"):
+                rId = robot.decodeHSACK(msg, neighbourList)
+                if (rId != None):
+                    neighbourList.append(rId)
+            else:
+                pass
+
+        # decode beats
+        # [[rId, taskIdx, taskBidVal, taskExec, taskAlloc, taskBidTime, taskDropTime], ... ]
+        (tempBeats, prevBeats) = robot.decodeBEATs(beats, neighbourList, prevBeats)
+        
+        return (neighbourList, tempBeats, prevBeats)
+
+    def bidConsensus(self, robot, tempBeats):
+        #===============================================================
+        # createBundle():
+        #    finds all free tasks and biddable tasks from them.
+        #    bids for the highest priority and bidvalue
+        # consensusBidTask():
+        #    consensus rules for the task on which the robot has bid
+        # consensusUnbidTask():
+        #    consensus rules for all tasks other than the one the robot has bid on
+        #===============================================================
+        bidUpdate = 0
+        taskUpdate = 0
+        bidLost = 0
+        # if the number of tasks robot bid is less than its limit
+        if (robot.nTaskBid <= robot.nTaskLimit):
+            # the robot has not placed any bid yet
+            if (robot.nTaskBid == 0):
+                for msg in (tempBeats):
+                    # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
+                    taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
+                if (robot.checkFreeTasks() != 0):
+                    robot.createBundle()
+            # robot has placed atleast one bid
+            elif (robot.nTaskBid > 0):
+                # robot has no extra task than the one assigned to it at this stage - bid if there is any task is of itnerest
+                if (robot.nTaskBid == robot.nTaskAllocated):
+                    if (robot.taskExec[robot.taskBidOrder[robot.nTaskAllocated-1]] == -2):
+                        # process all unbid tasks
+                        for msg in (tempBeats):
+                            # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
+                            taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
+                        # bid on a new task only if the bid limit is not reached and there is atleast one free task
+                        if ((robot.checkFreeTasks() != 0) and (robot.nTaskBid != robot.nTaskLimit)):
+                            robot.createBundle()
+                    elif (robot.taskExec[robot.taskBidOrder[robot.nTaskAllocated-1]] == -3):
+                        # check the execution progress and parallel execution and decide whether to drop the task
+                        taskStat = robot.checkTaskProgress()
+                        # if the task is not yet finished, check for parallel executions
+                        if (taskStat == 0):
+                            for msg in (tempBeats):
+                                # taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
+                                robot.checkParallel(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
+                            if (robot.stage == 0):
+                                # checking for a task dropping condition only if in stage 0
+                                robot.checkDrop()
+                        # process all unbid tasks
+                        for msg in (tempBeats):
+                            # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
+                            taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
+                        # bid on a new task only if the bid limit is not reached and there is atleast one free task
+                        if ((robot.checkFreeTasks() != 0) and (robot.nTaskBid != robot.nTaskLimit)):
+                            robot.createBundle()
+                # robot has placed a bid on the next possible task - consensusBidTask and consensusUnbidTask
+                elif (robot.nTaskBid > robot.nTaskAllocated):
+                    # the current bid is the first bid task
+                    if (robot.nTaskBid == 1):
+                        # update all unbid tasks - consensusUnbidTask
+                        for msg in (tempBeats):
+                            # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
+                            taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
+                        # reach consensus on current bid task
+                        rIds     = {}
+                        for msg in (tempBeats):
+                            if (bidLost != 1):
+                                # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
+                                bidLost = robot.consensusBidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
+                                if (bidLost == 1):
+                                    bidUpdate += 1
+                                else:
+                                    if (msg[0] not in rIds.keys()):
+                                        robot.msgCount += 1
+                                        rIds[msg[0]] = 0
+                        # if the current bid is not lost, update the current bid or place a new bid on a better task
+                        # if the bid is lost, the robot places a bid
+                        if (bidLost != 1):
+                            robot.updateBundle()
+                        elif (bidLost == 1):
+                            robot.createBundle()
+
+                    # robot is executing current task and has a bid task
+                    elif (robot.taskExec[robot.taskBidOrder[robot.nTaskAllocated-1]] == -3):
+                        # check the execution progress and parallel execution and decide whether to drop the task
+                        taskStat = robot.checkTaskProgress()
+                        if (taskStat == 0):
+                            for msg in (tempBeats):
+                                # taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
+                                robot.checkParallel(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
+                            if (robot.stage == 0):
+                                # checking for a task dropping condition only if in stage 0
+                                robot.checkDrop()
+                        # update all unbid tasks - consensusUnbidTask
+                        for msg in (tempBeats):
+                            # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
+                            taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
+                        # reach consensus on current bid task
+                        rIds = {}
+                        for msg in (tempBeats):
+                            if (bidLost != 1):
+                                # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
+                                bidLost = robot.consensusBidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
+                                if (bidLost == 1):
+                                    bidUpdate += 1
+                                else:
+                                    if (msg[0] not in rIds.keys()):
+                                        robot.msgCount += 1
+                                        rIds[msg[0]] = 0
+                        # if the current bid is not lost, update the current bid or place a new bid on a better task
+                        # if the bid is lost, the robot places a bid
+                        if (bidLost != 1):
+                            robot.updateBundle()
+                        elif (bidLost == 1):
+                            robot.createBundle()
+
+                    elif (robot.taskExec[robot.taskBidOrder[robot.nTaskAllocated-1]] == -2):
+                        # update all unbid tasks - consensusUnbidTask
+                        for msg in (tempBeats):
+                            # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
+                            taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
+                        # reach consensus on current bid task
+                        rIds = {}
+                        for msg in (tempBeats):
+                            if (bidLost != 1):
+                                # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
+                                bidLost = robot.consensusBidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
+                                if (bidLost == 1):
+                                    bidUpdate += 1
+                                else:
+                                    if (msg[0] not in rIds.keys()):
+                                        robot.msgCount += 1
+                                        rIds[msg[0]] = 0
+                        # if the current bid is not lost, update the current bid or place a new bid on a better task
+                        # if the bid is lost, the robot places a bid
+                        if (bidLost != 1):
+                            robot.updateBundle()
+                        elif (bidLost == 1):
+                            robot.createBundle()
+                    else:
+                        print ("error 1")
+                else:
+                    print ("error 2")
+            else:
+                print ("error 3")
+        else:
+            print ("error 4")
+
+    def comAfterAllTasks(self, robot, iRMsg, robotCmd, bcMsg, freeTasks, stopRecvd, neighbourList, timePrevBeats, timePrevHs, waitInit, waitBeats, waitHs):
+        rIndex = robot.index
+        if (freeTasks == 0):
+            timeNow = time.time()
+            timeStart2 = 0 + timeNow
+            tempBeats = []
+            while (misc.lt(timeNow-timeStart2, waitInit)):
+                time.sleep(0.1)
                 #===============================================================
-                # reading commands for safe exit from execution
+                # ::final coomunication phase::
+                # a robot reaches here only when it finishes all tasks. the last
+                # robot finishing will not send the beats and causes others to
+                # wait in an infinite loop.
+                # receive messages (hs, hsack, beats)
                 #===============================================================
+                # recv hs & send hsack, if required
+                msgs = misc.recvMsg(iRMsg[rIndex][0])
+                for msg in (msgs):
+                    if (msg[0] == "hs"):
+                        (rId, hsAck) = robot.encodeHSACK(msg, neighbourList)
+                        if (rId != None):
+                            neighbourList.append(rId)
+                            misc.sendMsg(iRMsg[rId][0], iRMsg[rId][1], hsAck)
+                    elif (msg[0] == "beats"):
+                        tempBeats.append(msg)
+                    elif (msg[0] == "hsack"):
+                        rId = robot.decodeHSACK(msg, neighbourList)
+                        if (rId != None):
+                            neighbourList.append(rId)
+                    else:
+                        pass
+
                 cmds = misc.recvMsg(robotCmd)
                 for cmd in (cmds):
                     if (cmd == 1):
+                        print ("r[%d] received stop command" %(rIndex))
                         stopRecvd = 1
-                        break
-
                 if (stopRecvd == 1):
-                    if (robot.taskProcess != None):
-#                        print ("got stop command at robotProcess")
-                        robot.stopExecution()
-                        # wait until the robot process is finished
-                        while (True):
-                            time.sleep(0.1)
-                            if (not(robot.taskProcess.is_alive())):
-                                break
-                        break
-                    else:
-                        break
+                    break
+                #===============================================================
+                # send messages (hs, hsack, beats)
+                #===============================================================
+                # send hs
+                if (misc.gt(timeNow-timePrevHs, waitHs)):     # braodcast hs in every 2 seconds
+                    print ("r[%d] has %d more seconds to go" %(rIndex, waitInit-(timeNow-timeStart2)))
+                    hs = robot.encodeHS()
+    #                print hs
+                    misc.sendMsg(bcMsg, None, hs)
+                    timePrevHs = 0 + hs[1]
 
-                #===============================================================
-                # ::communication phase::
-                # sends messages to all robots in NL
-                # the robot uses a lock for writing messages to queue for each robot
-                # the robot reads the messages from its message queue
-                #===============================================================
-                # communicate-write
                 # send beats to NL
                 if (neighbourList != []):
                     # prepare beats
@@ -440,288 +703,12 @@ class Cbpae():
                                 timePrevBeats[rId] = beats[1]
                                 misc.sendMsg(iRMsg[rId][0], iRMsg[rId][1], beats)
 
-                # send hs
-                if (misc.gt(timeNow-timePrevHs, waitHs)): # braodcast hs in every 2 seconds
-                    hs = robot.encodeHS()
-#                    print hs
-                    misc.sendMsg(bcMsg, None, hs)
-                    timePrevHs = 0 + hs[1]
-
-                # communicate-read
-                # all msgs sent to this robot will be received here
-                # reset beats
-                beats = []
-                msgs = misc.recvMsg(iRMsg[rIndex][0])
-                for msg in (msgs):
-                    if (msg[0] == "hs"):
-                        (rId, hsAck) = robot.encodeHSACK(msg, neighbourList)
-                        if (rId != None):
-                            neighbourList.append(rId)
-                            misc.sendMsg(iRMsg[rId][0], iRMsg[rId][1], hsAck)
-                    elif (msg[0] == "beats"):
-                        beats.append(msg)
-                    elif (msg[0] == "hsack"):
-                        rId = robot.decodeHSACK(msg, neighbourList)
-                        if (rId != None):
-                            neighbourList.append(rId)
-                    else:
-                        pass
-
-                # decode beats
-                # [[rId, taskIdx, taskBidVal, taskExec, taskAlloc, taskBidTime, taskDropTime], ... ]
-                (tempBeats, prevBeats) = robot.decodeBEATs(beats, neighbourList, prevBeats)
-
-                #===================================================================
-                # ::cbpae-core::
-                #===================================================================
-
-                #===============================================================
-                # ::bidding and consensus phase::
-                # createBundle():
-                #    finds all free tasks and biddable tasks from them.
-                #    bids for the highest priority and bidvalue
-                # consensusBidTask():
-                #    consensus rules for the task on which the robot has bid
-                # consensusUnbidTask():
-                #    consensus rules for all tasks other than the one the robot has bid on
-                #===============================================================
-                bidUpdate = 0
-                taskUpdate = 0
-                bidLost = 0
-                # if the number of tasks robot bid is less than its limit
-                if (robot.nTaskBid <= robot.nTaskLimit):
-                    # the robot has not placed any bid yet
-                    if (robot.nTaskBid == 0):
-                        for msg in (tempBeats):
-                            # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
-                            taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
-                        if (robot.checkFreeTasks() != 0):
-                            robot.createBundle()
-                    # robot has placed atleast one bid
-                    elif (robot.nTaskBid > 0):
-                        # robot has no extra task than the one assigned to it at this stage - bid if there is any task is of itnerest
-                        if (robot.nTaskBid == robot.nTaskAllocated):
-                            if (robot.taskExec[robot.taskBidOrder[robot.nTaskAllocated-1]] == -2):
-                                # process all unbid tasks
-                                for msg in (tempBeats):
-                                    # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
-                                    taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
-                                # bid on a new task only if the bid limit is not reached and there is atleast one free task
-                                if ((robot.checkFreeTasks() != 0) and (robot.nTaskBid != robot.nTaskLimit)):
-                                    robot.createBundle()
-                            elif (robot.taskExec[robot.taskBidOrder[robot.nTaskAllocated-1]] == -3):
-                                # check the execution progress and parallel execution and decide whether to drop the task
-                                taskStat = robot.checkTaskProgress()
-                                # if the task is not yet finished, check for parallel executions
-                                if (taskStat == 0):
-                                    for msg in (tempBeats):
-                                        # taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
-                                        robot.checkParallel(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
-                                    if (robot.stage == 0):
-                                        # checking for a task dropping condition only if in stage 0
-                                        robot.checkDrop()
-                                # process all unbid tasks
-                                for msg in (tempBeats):
-                                    # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
-                                    taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
-                                # bid on a new task only if the bid limit is not reached and there is atleast one free task
-                                if ((robot.checkFreeTasks() != 0) and (robot.nTaskBid != robot.nTaskLimit)):
-                                    robot.createBundle()
-                        # robot has placed a bid on the next possible task - consensusBidTask and consensusUnbidTask
-                        elif (robot.nTaskBid > robot.nTaskAllocated):
-                            # the current bid is the first bid task
-                            if (robot.nTaskBid == 1):
-                                # update all unbid tasks - consensusUnbidTask
-                                for msg in (tempBeats):
-                                    # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
-                                    taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
-                                # reach consensus on current bid task
-                                rIds     = {}
-                                for msg in (tempBeats):
-                                    if (bidLost != 1):
-                                        # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
-                                        bidLost = robot.consensusBidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
-                                        if (bidLost == 1):
-                                            bidUpdate += 1
-                                        else:
-                                            if (msg[0] not in rIds.keys()):
-                                                robot.msgCount += 1
-                                                rIds[msg[0]] = 0
-                                # if the current bid is not lost, update the current bid or place a new bid on a better task
-                                # if the bid is lost, the robot places a bid
-                                if (bidLost != 1):
-                                    robot.updateBundle()
-                                elif (bidLost == 1):
-                                    robot.createBundle()
-
-                            # robot is executing current task and has a bid task
-                            elif (robot.taskExec[robot.taskBidOrder[robot.nTaskAllocated-1]] == -3):
-                                # check the execution progress and parallel execution and decide whether to drop the task
-                                taskStat = robot.checkTaskProgress()
-                                if (taskStat == 0):
-                                    for msg in (tempBeats):
-                                        # taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
-                                        robot.checkParallel(msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
-                                    if (robot.stage == 0):
-                                        # checking for a task dropping condition only if in stage 0
-                                        robot.checkDrop()
-                                # update all unbid tasks - consensusUnbidTask
-                                for msg in (tempBeats):
-                                    # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
-                                    taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
-                                # reach consensus on current bid task
-                                rIds = {}
-                                for msg in (tempBeats):
-                                    if (bidLost != 1):
-                                        # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
-                                        bidLost = robot.consensusBidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
-                                        if (bidLost == 1):
-                                            bidUpdate += 1
-                                        else:
-                                            if (msg[0] not in rIds.keys()):
-                                                robot.msgCount += 1
-                                                rIds[msg[0]] = 0
-                                # if the current bid is not lost, update the current bid or place a new bid on a better task
-                                # if the bid is lost, the robot places a bid
-                                if (bidLost != 1):
-                                    robot.updateBundle()
-                                elif (bidLost == 1):
-                                    robot.createBundle()
-
-                            elif (robot.taskExec[robot.taskBidOrder[robot.nTaskAllocated-1]] == -2):
-                                # update all unbid tasks - consensusUnbidTask
-                                for msg in (tempBeats):
-                                    # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime, bidUpdate
-                                    taskUpdate += robot.consensusUnbidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6], 0)
-                                # reach consensus on current bid task
-                                rIds = {}
-                                for msg in (tempBeats):
-                                    if (bidLost != 1):
-                                        # index, taskIds, taskAlloc, taskBid, taskExec, taskBidTime, taskDropTime
-                                        bidLost = robot.consensusBidTask(msg[0], msg[1], msg[2], msg[3], msg[4], msg[5], msg[6])
-                                        if (bidLost == 1):
-                                            bidUpdate += 1
-                                        else:
-                                            if (msg[0] not in rIds.keys()):
-                                                robot.msgCount += 1
-                                                rIds[msg[0]] = 0
-                                # if the current bid is not lost, update the current bid or place a new bid on a better task
-                                # if the bid is lost, the robot places a bid
-                                if (bidLost != 1):
-                                    robot.updateBundle()
-                                elif (bidLost == 1):
-                                    robot.createBundle()
-                            else:
-                                print ("error 1")
-                        else:
-                            print ("error 2")
-                    else:
-                        print ("error 3")
-                else:
-                    print ("error 4")
-
-                #===============================================================
-                # ::task assignment phase::
-                # allocateTasks():
-                #    assigns tasks based on the msgCount and current task status
-                #===============================================================
-                robot.allocateTask()
-
-            # if the robot is not active, check the status
-            else:
-                robot.checkStatus()
-                # communicate-read to clear the queue
-                msgs = misc.recvMsg(iRMsg[rIndex][0])
-
-            #===================================================================
-            # ::exit policy::
-            # checkFreeTasks():
-            #    finds if there are any tasks being executed or has to be executed.
-            #    this is used as the exit condition from the while loop.
-            #    in an real situation, this can run in an infinite loop.
-            #===================================================================
-            freeTasks = 0
-            freeTasks = robot.checkFreeTasks()
-            loopCount += 1
-
-            # if all tasks are finished, continue communication process for a few times
-            if (freeTasks == 0):
                 timeNow = time.time()
-                timeStart2 = 0 + timeNow
-                tempBeats = []
-                while (misc.lt(timeNow-timeStart2, waitInit)):
-                    time.sleep(0.1)
-                    #===============================================================
-                    # ::final coomunication phase::
-                    # a robot reaches here only when it finishes all tasks. the last
-                    # robot finishing will not send the beats and causes others to
-                    # wait in an infinite loop.
-                    # receive messages (hs, hsack, beats)
-                    #===============================================================
-                    # recv hs & send hsack, if required
-                    msgs = misc.recvMsg(iRMsg[rIndex][0])
-                    for msg in (msgs):
-                        if (msg[0] == "hs"):
-                            (rId, hsAck) = robot.encodeHSACK(msg, neighbourList)
-                            if (rId != None):
-                                neighbourList.append(rId)
-                                misc.sendMsg(iRMsg[rId][0], iRMsg[rId][1], hsAck)
-                        elif (msg[0] == "beats"):
-                            tempBeats.append(msg)
-                        elif (msg[0] == "hsack"):
-                            rId = robot.decodeHSACK(msg, neighbourList)
-                            if (rId != None):
-                                neighbourList.append(rId)
-                        else:
-                            pass
-
-                    cmds = misc.recvMsg(robotCmd)
-                    for cmd in (cmds):
-                        if (cmd == 1):
-                            print ("r[%d] received stop command" %(rIndex))
-                            stopRecvd = 1
-                    if (stopRecvd == 1):
-                        break
-                    #===============================================================
-                    # send messages (hs, hsack, beats)
-                    #===============================================================
-                    # send hs
-                    if (misc.gt(timeNow-timePrevHs, waitHs)):     # braodcast hs in every 2 seconds
-                        print ("r[%d] has %d more seconds to go" %(rIndex, waitInit-(timeNow-timeStart2)))
-                        hs = robot.encodeHS()
-        #                print hs
-                        misc.sendMsg(bcMsg, None, hs)
-                        timePrevHs = 0 + hs[1]
-
-                    # send beats to NL
-                    if (neighbourList != []):
-                        # prepare beats
-                        beats = robot.encodeBEATs(neighbourList)
-                        timeNow = time.time()
-                        for rId in (neighbourList):
-                            # make sure there is a timePrevMsg for all robot in the NL
-                            if (rId not in timePrevBeats.keys()):
-                                timePrevBeats[rId] = robot.timeInit
-                            # send BEATs if the timePrevMsg is older by msgTime than current time
-                            if (misc.gt((timeNow - timePrevBeats[rId]), waitBeats)):
-                                if (rId != rIndex):
-                                    timePrevBeats[rId] = beats[1]
-                                    misc.sendMsg(iRMsg[rId][0], iRMsg[rId][1], beats)
-
-                    timeNow = time.time()
-
-            if (loopCount%1000 == 0):
-                for tId in (self.taskIds):
-                    if (robot.taskExec[tId] != -2):
-                        print ("r[%d] thinks t[%d] is in '%s' state" %(rIndex, tId, robot.taskExec[tId]))
-
-        timeStop = time.time()
-        timeExec = timeStop - timeStart
-
-        #=======================================================================
-        # FIXME: when the rId of robots are not in order / continuous, problem can occur in reading
-        # The solution could be using dicts instead of lists. The key shall be the ID of the robot/task
-        #=======================================================================
+        return (neighbourList, stopRecvd)
+        
+    def logRobotData(self, robot, timeStart, timeStop, timeExec):
+        rIndex = robot.index
+        
         if (LOGGING):
             print ("r[%d] starting logging" %(rIndex))
             logFile = open(os.path.join(self.logs, '_'.join((self.fNameSmall, str(rIndex), "cbpae.log"))), "w")
@@ -854,7 +841,8 @@ class Cbpae():
 
             logFile.close()
 
-
+    def finishRobotProc(self, robot, iRMsg, robotCmd, robotInfo, robotStat, neighbourList, loopCount):
+        rIndex = robot.index
 #        print ("r[%d] starting closing processes" %(rIndex))
         #===============================================================
         # ::after execution communication phase::
@@ -865,8 +853,6 @@ class Cbpae():
         # communicate-write
         timeNow = time.time()
         while (misc.lt((time.time() - timeNow),5)):
-            if (robot.rClient == None):
-                break
             time.sleep(0.100)
             for rId in (neighbourList):
                 lockStatus = False
@@ -887,19 +873,11 @@ class Cbpae():
                                 iRMsg[rId][1].release()
                             else:
                                 iRMsg[rId][1].release()
+                                
         # to avoid problems with data in queue
         iRMsg[rIndex][0].cancel_join_thread()
         robotCmd.cancel_join_thread()
         robotInfo.cancel_join_thread()
-
-        print ("r[%d] diconnecting clients now" %(rIndex))
-        # disconnect all proxies and client
-        if (robot.rClient == None):
-            print ("r[%d] player-client not connected" %(rIndex))
-        elif (robot.rClient == "dummy variable"):
-            print ("r[%d] player-client not connected" %(rIndex))
-        else:
-            robot.discClient()
 
         print ("robot [%d]: loopCount = %d" %(rIndex, loopCount))
 
@@ -916,6 +894,127 @@ class Cbpae():
                         robotStat[0].value = 1
                         robotStat[1].release()
                         break
+                    
+    def robotProcess(self, robot, iRMsg, bcMsg, robotInfo, robotCmd, robotStat):
+        """"robot process: handles the process of a single robot"""
+        # guiButton events
+        startRecvd = 0
+        stopRecvd = 0
+        
+        # for limiting the communication frequency
+        waitBeats = 1.0 # time between two inter-robot beats message multicasts
+        waitInit = 2.0 # wait time for initialisation
+        waitHs = 5.0 # wait between hs message broadcasts
+        
+        # main loop vars
+        loopCount = 0
+        timePrevBeats = {} # time at which the previous beats from this robot was sent
+        prevIdx = 0
+
+        rIndex = robot.index
+        print ("r[%d] starting the CBPAE" %(rIndex))
+        
+        # if gui is enabled, wait for the start command.
+        self.waitForStartButton(robotCmd, startRecvd, stopRecvd)
+        
+        # progress from here only if the robot is active
+        self.checkRobotActive(robot, iRMsg)
+        
+        # update active status all tasks
+        robot.checkActiveTasks()
+
+        # Create the initial NL - neighbour list
+        (neighbourList, tempBeats, prevBeats, stopRecvd, timeStart, timeNow, timePrevHs) = self.populateNeighbours(robot, iRMsg, bcMsg, robotCmd, waitInit, waitHs, stopRecvd)
+
+        freeTasks = self.getInitFreeTasks(robot, neighbourList)
+
+        while (freeTasks > 0):
+            # update task active status in every loop
+            robot.checkActiveTasks()
+
+            # update NL - remove neighbours not sending beats from NL
+            neighbourList = robot.updateNeighbourList(neighbourList, prevBeats)
+            robot.nNeighbour = len(neighbourList)
+
+            prevIdx = self.updatePoseGui(robot, robotInfo, prevIdx)
+
+            time.sleep(.1)
+            if (robot.active == 1):
+                (stopRecvd, breakTrue) = self.safeRobotStop(robot, robotCmd, stopRecvd)
+                if breakTrue:
+                    break
+            
+                #===============================================================
+                # ::communication phase::
+                # sends messages to all robots in NL
+                # the robot uses a lock for writing messages to queue for each robot
+                # the robot reads the messages from its message queue
+                #===============================================================
+                # communicate-write
+                (timeNow, timePrevBeats, timePrevHs) = self.comWrite(robot, iRMsg, bcMsg, neighbourList, waitBeats, waitHs, timePrevBeats, timePrevHs)
+
+                # communicate-read
+                (neighbourList, tempBeats, prevBeats) = self.comRead(robot, iRMsg, neighbourList, prevBeats)
+
+                #===================================================================
+                # ::cbpae-core::
+                #===================================================================
+
+                #===============================================================
+                # ::bidding and consensus phase::
+                # createBundle():
+                #    finds all free tasks and biddable tasks from them.
+                #    bids for the highest priority and bidvalue
+                # consensusBidTask():
+                #    consensus rules for the task on which the robot has bid
+                # consensusUnbidTask():
+                #    consensus rules for all tasks other than the one the robot has bid on
+                #===============================================================
+                self.bidConsensus(robot, tempBeats)
+
+                #===============================================================
+                # ::task assignment phase::
+                # allocateTasks():
+                #    assigns tasks based on the msgCount and current task status
+                #===============================================================
+                robot.allocateTask()
+
+            # if the robot is not active, check the status
+            else:
+                robot.checkStatus()
+                # communicate-read to clear the queue
+                msgs = misc.recvMsg(iRMsg[rIndex][0])
+
+            #===================================================================
+            # ::exit policy::
+            # checkFreeTasks():
+            #    finds if there are any tasks being executed or has to be executed.
+            #    this is used as the exit condition from the while loop.
+            #    in an real situation, this can run in an infinite loop.
+            #===================================================================
+            freeTasks = 0
+            freeTasks = robot.checkFreeTasks()
+            loopCount += 1
+
+            # if all tasks are finished, continue communication process for a few times - to retain network links
+            (neighbourList, stopRecvd) = self.comAfterAllTasks(robot, iRMsg, robotCmd, bcMsg, freeTasks, stopRecvd, neighbourList, timePrevBeats, timePrevHs, waitInit, waitBeats, waitHs)
+            
+            if (loopCount%1000 == 0):
+                for tId in (self.taskIds):
+                    if (robot.taskExec[tId] != -2):
+                        print ("r[%d] thinks t[%d] is in '%s' state" %(rIndex, tId, robot.taskExec[tId]))
+
+        timeStop = time.time()
+        timeExec = timeStop - timeStart
+
+        #=======================================================================
+        # FIXME: when the rId of robots are not in order / continuous, problem can occur in reading
+        # The solution could be using dicts instead of lists. The key shall be the ID of the robot/task
+        #=======================================================================
+        self.logRobotData(robot, timeStart, timeStop, timeExec)
+
+        self.finishRobotProc(robot, iRMsg, robotCmd, robotInfo, robotStat, neighbourList, loopCount)
+        
         return
 
     def plotData(self, logsDir, plotsDir, fName):
