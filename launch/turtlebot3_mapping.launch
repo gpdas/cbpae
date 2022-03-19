@@ -4,5 +4,5 @@
     <param name="base_frame" value="base_footprint" />
   </node>
   <node pkg="tf" name="static_transform_publisher" type="static_transform_publisher" args="0 0 0.2 0 0 0 base_footprint base_scan 10"/>
-  <node pkg="rviz" name="rviz" type="rviz" args="-d $(find cbpae)/rviz/single_robot_mapping.rviz" />
+  <node pkg="rviz" name="rviz" type="rviz" args="-d $(find cbpae)/config/rviz/single_robot_mapping.rviz" />
 </launch>

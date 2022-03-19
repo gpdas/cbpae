@@ -44,7 +44,7 @@ def getXY(roomXY):
 
 def createData():
 
-    rType  = "test"
+    rType  = "abstract"
 
     dataDir  = os.path.abspath(os.path.join(os.getcwd(), os.pardir)) + "/data/"
     try:
@@ -161,17 +161,17 @@ def createData():
                         rList[rSel][9].append(skill)
                         rList[rSel][10].append(random.uniform(0.5, 0.9))
 
-            dataFile1 = open(dataDir + str(nr)+"_"+str(nt)+"_rooms_hetero_diffprio_equalstart_"+"inData.dat", "w")# few emergency prio, from start
-            dataFile2 = open(dataDir + str(nr)+"_"+str(nt)+"_rooms_hetero_diffprio_randmstart_"+"inData.dat", "w")# few emergency prio, random start
+            dataFile1 = open(dataDir + str(nr)+"_"+str(nt)+"_rooms_hetero_diffprio_equalstart"+".txt", "w")# few emergency prio, from start
+            dataFile2 = open(dataDir + str(nr)+"_"+str(nt)+"_rooms_hetero_diffprio_randmstart"+".txt", "w")# few emergency prio, random start
 
-            dataFile3 = open(dataDir + str(nr)+"_"+str(nt)+"_clean_hetero_diffprio_equalstart_"+"inData.dat", "w")# few emergency prio, from start
-            dataFile4 = open(dataDir + str(nr)+"_"+str(nt)+"_clean_hetero_diffprio_randmstart_"+"inData.dat", "w")# few emergency prio, random start
+            dataFile3 = open(dataDir + str(nr)+"_"+str(nt)+"_openspace_hetero_diffprio_equalstart"+".txt", "w")# few emergency prio, from start
+            dataFile4 = open(dataDir + str(nr)+"_"+str(nt)+"_openspace_hetero_diffprio_randmstart"+".txt", "w")# few emergency prio, random start
 
-            dataFile5 = open(dataDir + str(nr)+"_"+str(nt)+"_rooms_homo_diffprio_equalstart_"+"inData.dat", "w")# few emergency prio, from start
-            dataFile6 = open(dataDir + str(nr)+"_"+str(nt)+"_rooms_homo_diffprio_randmstart_"+"inData.dat", "w")# few emergency prio, random start
+            dataFile5 = open(dataDir + str(nr)+"_"+str(nt)+"_rooms_homo_diffprio_equalstart"+".txt", "w")# few emergency prio, from start
+            dataFile6 = open(dataDir + str(nr)+"_"+str(nt)+"_rooms_homo_diffprio_randmstart"+".txt", "w")# few emergency prio, random start
 
-            dataFile7 = open(dataDir + str(nr)+"_"+str(nt)+"_clean_homo_diffprio_equalstart_"+"inData.dat", "w")# few emergency prio, from start
-            dataFile8 = open(dataDir + str(nr)+"_"+str(nt)+"_clean_homo_diffprio_randmstart_"+"inData.dat", "w")# few emergency prio, random start
+            dataFile7 = open(dataDir + str(nr)+"_"+str(nt)+"_openspace_homo_diffprio_equalstart"+".txt", "w")# few emergency prio, from start
+            dataFile8 = open(dataDir + str(nr)+"_"+str(nt)+"_openspace_homo_diffprio_randmstart"+".txt", "w")# few emergency prio, random start
 
 
             fileOpen = [dataFile1, dataFile2, dataFile5, dataFile6]

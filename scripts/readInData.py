@@ -107,20 +107,20 @@ def readInData(fName):
                 skills.append(rStr[idx].strip())
                 expertise.append(float(rStr[idx+1]))
 
-            # only considering "test" and "ros"
-#            rType = "test"
+            # only considering "abstract" and "ros"
+#            rType = "abstract"
 
             rId = int(rStr[0].strip(), 10)
             rType = rStr[10+2*nSkills].strip(" ")
-            if rType == "test":
-                print(rId, rType, "test")
+            if rType == "abstract":
+                print("%s: config as: %s; set as: %s" %(rId, rType, "abstract"))
                 robotList[rId] = robot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
             elif rType == "ros":
-                print(rId, rType, "ros")
+                print("%s: config as: %s; set as: %s" %(rId, rType, "ros"))
                 robotList[rId] = rosbot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
             else:
-                # default same as for rType "test"
-                print(rId, rType, "test-default")
+                # default same as for rType "abstract"
+                print("%s: config as: %s; set as: %s" %(rId, rType, "abstract"))
                 robotList[rId] = robot.Robot(rId, float(rStr[1]), float(rStr[2]), float(rStr[3]), int(rStr[4]), float(rStr[5]), float(rStr[6]), rStr[7].strip(), int(rStr[8]), doTask)
 
             # setting expertise
@@ -158,5 +158,5 @@ def readInData(fName):
     return (robotIds, robotList, taskIds, taskList, mapInfo)
 
 if __name__ == "__main__":
-    fName = "../config/testing_inData.dat"
+    fName = "../config/abstract_openspace.txt"
     readInData(fName)

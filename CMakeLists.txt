@@ -105,7 +105,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES cbpae
-#  CATKIN_DEPENDS rospy 
+  CATKIN_DEPENDS rospy turtlebot3_teleop turtlebot3_description
 #  DEPENDS system_lib
 )
 
@@ -194,6 +194,7 @@ include_directories(
 
 install(PROGRAMS
   scripts/cbpae.py
+  scripts/cbpae_node.py
   scripts/createData.py
   scripts/gui.py
   scripts/mapData.py

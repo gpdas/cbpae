@@ -35,4 +35,4 @@ windows:
   - roslaunch cbpae turtlebot3_navigation_multi.launch robot_name:="robot_01"
 - name: rviz
   panes:
-  - rosrun rviz rviz -d $(rospack find cbpae)/rviz/cbpae_turtles.rviz
+  - rosrun rviz rviz -d $(rospack find cbpae)/config/rviz/cbpae_turtles.rviz

@@ -11,12 +11,12 @@
   <!-- move_base -->
     <node pkg="move_base" type="move_base" respawn="true" name="move_base" output="screen">
       <param name="base_local_planner" value="dwa_local_planner/DWAPlannerROS" />
-      <rosparam file="$(find cbpae)/params/turtlebot3/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap" />
-      <rosparam file="$(find cbpae)/params/turtlebot3/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap" />
-      <rosparam file="$(find cbpae)/params/turtlebot3/local_costmap_params.yaml" command="load" />
-      <rosparam file="$(find cbpae)/params/turtlebot3/global_costmap_params.yaml" command="load" />
-      <rosparam file="$(find cbpae)/params/turtlebot3/move_base_params.yaml" command="load" />
-      <rosparam file="$(find cbpae)/params/turtlebot3/dwa_local_planner_params_$(arg model).yaml" command="load" />
+      <rosparam file="$(find cbpae)/config/move_base/turtlebot3/costmap_common_params_$(arg model).yaml" command="load" ns="global_costmap" />
+      <rosparam file="$(find cbpae)/config/move_base/turtlebot3/costmap_common_params_$(arg model).yaml" command="load" ns="local_costmap" />
+      <rosparam file="$(find cbpae)/config/move_base/turtlebot3/local_costmap_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/config/move_base/turtlebot3/global_costmap_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/config/move_base/turtlebot3/move_base_params.yaml" command="load" />
+      <rosparam file="$(find cbpae)/config/move_base/turtlebot3/dwa_local_planner_params_$(arg model).yaml" command="load" />
       <param name="DWAPlannerROS/min_vel_x" value="0.0" if="$(arg move_forward_only)" />
     </node>
 

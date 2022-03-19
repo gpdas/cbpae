@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>cbpae</name>
-  <version>0.0.0</version>
+  <version>6.0.0</version>
   <description>The cbpae package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
@@ -61,6 +61,8 @@
   <exec_depend>gazebo_ros</exec_depend>
   <exec_depend>gazebo_plugins</exec_depend>
   <exec_depend>rospy</exec_depend>
+  <exec_depend>turtlebot3_description</exec_depend>
+  <exec_depend>turtlebot3_teleop</exec_depend>
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>

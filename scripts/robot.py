@@ -57,7 +57,7 @@ class Robot(object):
         self.xOrg = xCord
         self.yOrg = yCord
 
-        self.rType = "test"
+        self.rType = "abstract"
         self.nTaskLimit = nTaskLimit
         self.vel = 0.2
         self.timeOn = rOn
@@ -135,7 +135,7 @@ class Robot(object):
 
 #        self.taskZone            = 1.5*self.zone[2] # closeness to the task location where in which the task is considered to be executed
         # closeness to the task location where in which the task is considered to be executed
-        if (self.rType == "test"):
+        if (self.rType == "abstract"):
             self.taskZone = 0.1
         else:
             self.taskZone = self.zone[0]
@@ -2016,49 +2016,49 @@ class Robot(object):
                 # fall: navigation -> vision -> audition
                 if (skill == "vision"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    
+
                 elif (skill == "audition"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1] + self.taskList[tIndex].timeExec["vision"]
-                    
+
 
             elif (self.taskList[tIndex].taskType == "surveillance"):
                 # surveillance: navigation -> vision -> audition
                 if (skill == "vision"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    
+
                 elif (skill == "audition"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1] + self.taskList[tIndex].timeExec["vision"]
-                    
+
 
             elif (self.taskList[tIndex].taskType == "medicine"):
                 # medicine: navigation -> audition
                 if (skill == "audition"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    
+
 
             elif (self.taskList[tIndex].taskType == "clean"):
                 # clean: navigation -> cleaner
                 if (skill == "cleaner"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    
+
 
             elif (self.taskList[tIndex].taskType == "door"):
                 # door: navigation -> vision -> manipulator -> audition
                 if (skill == "vision"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    
+
                 elif (skill == "manipulator"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1] + self.taskList[tIndex].timeExec["vision"]
-                    
+
                 elif (skill == "audition"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1] + self.taskList[tIndex].timeExec["vision"] + self.taskList[tIndex].timeExec["manipulator"]
-                    
+
 
             elif (self.taskList[tIndex].taskType == "delivery"):
                 # delivery: navigation -> gripper -> navigation -> gripper
                 if (skill == "gripper"):
                     timeStart = self.taskStartTime[self.nTaskAllocated-1][1]
-                    
+
 
             timeNow = time.time()
             timeDiff = (timeNow - timeStart)
@@ -2353,7 +2353,7 @@ class Robot(object):
             if (self.taskExec[tId] == -1):
                 if (not(misc.eq(self.taskBidTime[tId], -1.0))):
                     addTask = 1
-                
+
             elif (self.taskExec[tId] == -2):
                 if (misc.gt(timeNow - self.taskFinTime[tId], waitFinish)): # tasks finished 30 seconds before are not parsed in beats
                     pass

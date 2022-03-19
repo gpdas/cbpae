@@ -1,33 +1,54 @@
 # Consensus Based Parallel Allocation and Execution (CBPAE)
 
-Version 5.01.00
+## Version 6.00.00
 
 A multi-robot task allocation (MRTA) algorithm for ST-SR-IA with
-  * task priorities
-  * task drop to attend an emergency priority task
-  * simple inter-robot communication
-  * heterogeneous robots and tasks
-  * skills and expertise based bidding
-  * parallel allocation and execution (PAE)
+  * Heterogeneous robots and tasks
+  * Prioritised tasks
+  * Task drop functionality to attend a new emergency-priority task
+  * Simple inter-robot communication protocol
+  * Skills and expertise based bidding
+  * Parallel allocation and execution (PAE) - suitable for dynamic environments
+  * Only Python3 is supported
+  * ROS Noetic and above 
 
 Each robot is contained in a separate process and the robots communicate using inter-process communication (implemented with a centralised communciation manager).
 
-The robots are defined as an abstract type for Monte-Carlo simulations
+## Types of robots:
+  * abstract: These robots are defined as an abstract type for Monte-Carlo simulations
+  * ros: These are now assumed to be turtlebot3 burger robots (either simulated or physical) with ros communications to drive them
 
-Although now deprecated and not included, this abstract class was originally extended to work with  
-  * Pioneer3-Dx robot simulated in Stage controlled using Player
-  * Physical Pioneer3-Dx robot controlled using Player 
-  * Physical Pioneer3-Dx robot controlled using ROS
+## Input data:
+Some sample input data are available.
+  * data/abstract_openspace.txt: An open environment with two abstract robots and some tasks.
+  * data/abstract_rooms.txt: An indoor environment with two abstract robots and some tasks.
+  * data/ros_openspace.txt: An open environment with two ROS robots (assumed to be turtlebots3-Burger) and some tasks.
 
-A sample input data file for the experiment in `data/testing_inData.dat` (this is a simple text file).
+More such input data files can be create using `scripts/createData.py`
 
-Create more data files using `scripts/createData.py`
-
-Modify `cbpae.py` with the input data file details and run using `python2`.
+## Log of trials
 
 Logs are stored in `$HOME/cbpae/logs/`.
 
 Plots are generated in `$HOME/cbpae/plots/` from the logs.
+
+## How to run examples
+Python script: 
+In a terminal go to the cbpae directory and run the following
+```
+python scripts/cbpae.py data/abstract_openspace.txt
+```
+
+ROS node:
+Clone the repository to a catkin workspace and `catkin_make` it. In a terminal run the following :
+```
+python -m pip install tmule
+roscd cbpae/config/tmule
+tmule -c cbpae_turtles.yaml launch
+rosrun cbpae cbpae_node.py $(rospack find cbpae)/data/ros_openspace.txt
+```
+
+To close, click `Stop CBPAE` button in the GUI and close the application window.
 
 ## Citation
 

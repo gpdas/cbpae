@@ -37,10 +37,9 @@ import gui
 import wx
 import os
 import sys
-import string
 
 ## cbpae - version
-VERSION = "05.01.00"
+VERSION = "06.00.00"
 
 ## enable/disable logging
 LOGGING = True
@@ -108,12 +107,12 @@ class Cbpae():
             # populating message queues in robotInfoQ
             # each robot sends its coordinates which are then retrieved and plotted in GUI
             robotInfo[rId] = multiprocessing.Queue()
-        
+
         # set the timeInit for all robots and tasks to monitor the activation time
         timeInit     = time.time()
         for rId in (self.robotIds):
             self.robotList[rId].setInitTime(timeInit)
-            
+
         return (robotProc, iRMsg, robotStat, robotInfo, robotCmd, bcMsg, cbpaeRun, wsInfo)
 
     def startBroadcaster(self, cbpaeRun, bcMsg, iRMsg):
@@ -122,7 +121,7 @@ class Cbpae():
         broadcasterProc.start()
         print ("broadcaster pid = %d" %(broadcasterProc.pid))
         return broadcasterProc
-    
+
     def startRobots(self, robotProc, iRMsg, bcMsg, robotInfo, robotCmd, robotStat):
         # create robotProcesses
         for rId in (self.robotIds):
@@ -131,7 +130,7 @@ class Cbpae():
             robotProc[rId].start()
             print ("robot[%d] pid = %d" %(rId, robotProc[rId].pid))
         return robotProc
-        
+
     def startGui(self, wsInfo, robotInfo, robotCmd):
         # start the gui process
         # gui app and process
@@ -141,7 +140,7 @@ class Cbpae():
         guiProc = multiprocessing.Process(target=guiApp.MainLoop)
         guiProc.start()
         return guiProc
-    
+
     def checkRJoinable(self, robotProc, robotStat):
         # looking for robotProcesses which have finished execution
         rJoinable = []
@@ -171,7 +170,7 @@ class Cbpae():
         print ("received stop status from all robotProcesses")
 
         return rJoinable
-    
+
     def stopBroadcaster(self, cbpaeRun):
         # sending stop signal to broadcasterProcess
         while (True):
@@ -184,7 +183,7 @@ class Cbpae():
                     cbpaeRun[0].value = 1
                     cbpaeRun[1].release()
                     break
-    
+
     def clearQueues(self, iRMsg, robotCmd, robotInfo):
         # reading all data from iRMsgQs before the robot processes are joined
         # if data is left in the queue, the subprocess won't be joined
@@ -193,7 +192,7 @@ class Cbpae():
 
             cmds = misc.recvMsg(robotCmd[rId])
             infos = misc.recvMsg(robotInfo[rId])
-    
+
     def joinRobotProc(self, robotProc):
         # joining robot processes
         for rId in (self.robotIds):
@@ -203,7 +202,7 @@ class Cbpae():
             if (robotProc[rId].is_alive()):
                 print ("robotProc[%d] joining failed. Terminating now." %(rId))
                 robotProc[rId].terminate()
-    
+
     def logBasicInfo(self):
         #===============================================================
         # Combined Logging
@@ -220,7 +219,7 @@ class Cbpae():
                 print ("%d, %0.3f, %0.3f, %0.3f, %0.3f" %(tId, self.taskList[tId].xOrg, self.taskList[tId].yOrg, self.taskList[tId].xFinish, self.taskList[tId].yFinish), file=logFile)
             print ("--basic info: end--", file=logFile)
             logFile.close()
-            
+
     def run(self):
         """ generates a new process to handle all robot processes.
             checks for keyboard interrupt to exit gracefully"""
@@ -233,16 +232,16 @@ class Cbpae():
 #         # pass additional queues to the robot processes by overloading this method
 # =============================================================================
         robotProc = self.startRobots(robotProc, iRMsg, bcMsg, robotInfo, robotCmd, robotStat)
-        
+
         guiProc = self.startGui(wsInfo, robotInfo, robotCmd)
 
 # =============================================================================
 #         # This is the main loop checking robotProcs
 # =============================================================================
-        rJoinable = self.checkRJoinable(robotProc, robotStat) 
+        rJoinable = self.checkRJoinable(robotProc, robotStat)
 
         self.stopBroadcaster(cbpaeRun)
-        
+
         self.clearQueues(iRMsg, robotCmd, robotInfo)
 
         self.joinRobotProc(robotProc)
@@ -250,8 +249,8 @@ class Cbpae():
         self.logBasicInfo()
 
         print ("CBPAE Trial Finished!!!")
-        
-        
+
+
 
     def broadCaster(self, cbpaeRun=[], bcMsg = {}, iRMsg={}):
         # cbpaeRun = [mp.Value(), mp.Lock()]
@@ -311,6 +310,7 @@ class Cbpae():
             if ((startRecvd == 1) or (stopRecvd == 1)):
                 break
             time.sleep(0.1)
+        return (startRecvd, stopRecvd)
 
     def checkRobotActive(self, robot, iRMsg):
         rIndex = robot.index
@@ -333,7 +333,7 @@ class Cbpae():
 
         tempBeats = [] # used for temperory storage of procesed beats msgs
         prevBeats = {} # dict of previous beats sent to neighbours. used to avoid unwanted beats sending
-        
+
         # spend some time populating the neighbour list here
         timeStart = time.time()
         timeNow = 0 + timeStart
@@ -389,7 +389,7 @@ class Cbpae():
             if (stopRecvd == 1):
                 break
             timeNow = time.time()
-            
+
         return (neighbourList, tempBeats, prevBeats, stopRecvd, timeStart, timeNow, timePrevHs)
 
     def getInitFreeTasks(self, robot, neighbourList):
@@ -404,7 +404,7 @@ class Cbpae():
         # initialising variables
         print ("r[%d] has found %d free tasks" %(rIndex, freeTasks))
         return freeTasks
-    
+
     def updatePoseGui(self, robot, robotInfo, prevIdx):
         #===============================================================
         # copying robot information to robotInfoQ -> to gui
@@ -414,7 +414,7 @@ class Cbpae():
             misc.sendMsg(robotInfo, None, [robot.x[idx], robot.y[idx]])
         prevIdx = newIdx + 0
         return prevIdx
-    
+
     def safeRobotStop(self, robot, robotCmd, stopRecvd):
         #===============================================================
         # reading commands for safe exit from execution
@@ -442,11 +442,11 @@ class Cbpae():
 
     def comWrite(self, robot, iRMsg, bcMsg, neighbourList, waitBeats, waitHs, timePrevBeats, timePrevHs):
         rIndex = robot.index
+        timeNow = time.time()
         # send beats to NL
         if (neighbourList != []):
             # prepare beats
             beats = robot.encodeBEATs(neighbourList)
-            timeNow = time.time()
             for rId in (neighbourList):
                 # make sure there is a timePrevMsg for all robot in the NL
                 if (rId not in timePrevBeats.keys()):
@@ -463,7 +463,7 @@ class Cbpae():
 #                    print hs
             misc.sendMsg(bcMsg, None, hs)
             timePrevHs = 0 + hs[1]
-            
+
         return (timeNow, timePrevBeats, timePrevHs)
 
     def comRead(self, robot, iRMsg, neighbourList, prevBeats):
@@ -490,7 +490,7 @@ class Cbpae():
         # decode beats
         # [[rId, taskIdx, taskBidVal, taskExec, taskAlloc, taskBidTime, taskDropTime], ... ]
         (tempBeats, prevBeats) = robot.decodeBEATs(beats, neighbourList, prevBeats)
-        
+
         return (neighbourList, tempBeats, prevBeats)
 
     def bidConsensus(self, robot, tempBeats):
@@ -705,10 +705,10 @@ class Cbpae():
 
                 timeNow = time.time()
         return (neighbourList, stopRecvd)
-        
+
     def logRobotData(self, robot, timeStart, timeStop, timeExec):
         rIndex = robot.index
-        
+
         if (LOGGING):
             print ("r[%d] starting logging" %(rIndex))
             logFile = open(os.path.join(self.logs, '_'.join((self.fNameSmall, str(rIndex), "cbpae.log"))), "w")
@@ -861,7 +861,7 @@ class Cbpae():
                         lockStatus = iRMsg[rId][1].acquire(0)
                     except:
                         print ("error in acquiring iRMsgLock[%d] by robot[%d]" %(rId, rIndex))
-                        
+
                     else:
                         if (lockStatus):
                             try:
@@ -873,7 +873,7 @@ class Cbpae():
                                 iRMsg[rId][1].release()
                             else:
                                 iRMsg[rId][1].release()
-                                
+
         # to avoid problems with data in queue
         iRMsg[rIndex][0].cancel_join_thread()
         robotCmd.cancel_join_thread()
@@ -894,18 +894,18 @@ class Cbpae():
                         robotStat[0].value = 1
                         robotStat[1].release()
                         break
-                    
+
     def robotProcess(self, robot, iRMsg, bcMsg, robotInfo, robotCmd, robotStat):
         """"robot process: handles the process of a single robot"""
         # guiButton events
         startRecvd = 0
         stopRecvd = 0
-        
+
         # for limiting the communication frequency
         waitBeats = 1.0 # time between two inter-robot beats message multicasts
         waitInit = 2.0 # wait time for initialisation
         waitHs = 5.0 # wait between hs message broadcasts
-        
+
         # main loop vars
         loopCount = 0
         timePrevBeats = {} # time at which the previous beats from this robot was sent
@@ -913,13 +913,13 @@ class Cbpae():
 
         rIndex = robot.index
         print ("r[%d] starting the CBPAE" %(rIndex))
-        
+
         # if gui is enabled, wait for the start command.
-        self.waitForStartButton(robotCmd, startRecvd, stopRecvd)
-        
+        (startRecvd, stopRecvd) = self.waitForStartButton(robotCmd, startRecvd, stopRecvd)
+
         # progress from here only if the robot is active
         self.checkRobotActive(robot, iRMsg)
-        
+
         # update active status all tasks
         robot.checkActiveTasks()
 
@@ -943,7 +943,7 @@ class Cbpae():
                 (stopRecvd, breakTrue) = self.safeRobotStop(robot, robotCmd, stopRecvd)
                 if breakTrue:
                     break
-            
+
                 #===============================================================
                 # ::communication phase::
                 # sends messages to all robots in NL
@@ -998,7 +998,7 @@ class Cbpae():
 
             # if all tasks are finished, continue communication process for a few times - to retain network links
             (neighbourList, stopRecvd) = self.comAfterAllTasks(robot, iRMsg, robotCmd, bcMsg, freeTasks, stopRecvd, neighbourList, timePrevBeats, timePrevHs, waitInit, waitBeats, waitHs)
-            
+
             if (loopCount%1000 == 0):
                 for tId in (self.taskIds):
                     if (robot.taskExec[tId] != -2):
@@ -1014,13 +1014,13 @@ class Cbpae():
         self.logRobotData(robot, timeStart, timeStop, timeExec)
 
         self.finishRobotProc(robot, iRMsg, robotCmd, robotInfo, robotStat, neighbourList, loopCount)
-        
+
         return
 
     def plotData(self, logsDir, plotsDir, fName):
         """"read all logs. merge them to a single one. plot all data in single plot"""
         print (">>> plotting data")
-        
+
         fNameSmall = fName.split("/")[-1].split("\\")[-1]
 
         class Robot():
@@ -1316,25 +1316,25 @@ if (__name__ == "__main__"):
         print ("usage: cbpae.py <path_to_data_file>")
     else:
         fName     = sys.argv[1]
-        
+
         main_dir = os.path.join(os.environ["HOME"], "cbpae")
 
         logsDir = os.path.join(main_dir, "logs")
         plotsDir = os.path.join(main_dir, "plots")
-        
+
         if not os.path.exists(main_dir):
             os.mkdir(main_dir)
-        
+
         if not os.path.exists(logsDir):
             os.mkdir(logsDir)
-        
+
         if not os.path.exists(plotsDir):
             os.mkdir(plotsDir)
-        
-        test = Cbpae(fName, logsDir)
-        test.run()
+
+        cbpae = Cbpae(fName, logsDir)
+        cbpae.run()
         if (LOGGING):
-            test.plotData(logsDir, plotsDir, fName)
+            cbpae.plotData(logsDir, plotsDir, fName)
 
 
 

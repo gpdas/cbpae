@@ -45,8 +45,8 @@ true
 # do task
 true
 # robot: rId, xOrg, yOrg, aOrg, taskLimit, onTime, offTime, hostIP, port, nSkills, sNavigation, eNavigation, sVision, eVision, sAudition, eAudition, sGripper, eGripper, sCleaner, eCleaner, sManipulator, eManipulator, rtype
-0, 4.20, .30, 180.0, 20 , 0.0 , inf, localhost, 6666, 4, navigation, 0.700,  cleaner, 0.800,  vision, 0.800,  audition, 0.800, test
-1, 0.30, 2.40, 270.0, 20 , 0.0 , inf, localhost, 6667, 4, navigation, 0.700,  cleaner, 0.800,  vision, 0.800,  audition, 0.800, test
+0, 4.20, .30, 180.0, 20 , 0.0 , inf, localhost, 6666, 4, navigation, 0.700,  cleaner, 0.800,  vision, 0.800,  audition, 0.800, abstract
+1, 0.30, 2.40, 270.0, 20 , 0.0 , inf, localhost, 6667, 4, navigation, 0.700,  cleaner, 0.800,  vision, 0.800,  audition, 0.800, abstract
 ## task info:
 # no of tasks
 15 

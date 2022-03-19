@@ -13,40 +13,58 @@ import task
 import misc
 import robot
 import rospy
-import move_base_msgs.msg
 import nav_msgs.msg
-import actionlib
-import std_msgs.msg
-import random
 
 class Robot(robot.Robot):
     """
     """
-    def __init__(self, rIndex, xCord=0.0, yCord=0.0, 
-                 heading=0.0, nTaskLimit=1,  rOn=0.0, 
+    def __init__(self, rIndex, xCord=0.0, yCord=0.0,
+                 heading=0.0, nTaskLimit=1,  rOn=0.0,
                  rOff=float("inf"), ipAdd="localhost", portNum=6665, doTask=False):
         """
         """
-        super(Robot, self).__init__(rIndex, xCord, yCord, 
-                 heading, nTaskLimit,  rOn, 
+        super(Robot, self).__init__(rIndex, xCord, yCord,
+                 heading, nTaskLimit,  rOn,
                  rOff, ipAdd, portNum, doTask)
-        self.ns = "robot_%02d" %(rIndex)
-        self.mbClient = actionlib.SimpleActionClient(self.ns+"/move_base", move_base_msgs.msg.MoveBaseAction)
-        self.mbClient.wait_for_server()
+
+        self.ns = "/robot_%02d" %(rIndex)
+        self.rType = "ros"
 
         self.mbFinished = False
         self.goalSent = False
-        
+        self.gotOdom = False
+
+        self.odomQ = multiprocessing.Queue()
+        self.timeOdomQ = time.time()
+
         self.xPos = xCord
         self.yPos = yCord
+        self.x = []
+        self.y = []
         self.odomSub = rospy.Subscriber(self.ns+"/odom", nav_msgs.msg.Odometry, self.odomCB)
-        self.pub = rospy.Publisher(self.ns+"/chatter", std_msgs.msg.String, queue_size=5)
+
+        while not self.gotOdom:
+            time.sleep(0.2)
 
     def odomCB(self, msg):
         """
         """
         self.xPos = msg.pose.pose.position.x
         self.yPos = msg.pose.pose.position.y
+        timeNow = time.time()
+
+        # odom updates do not reach the subprocesses. pass it using a queue
+        if timeNow - self.timeOdomQ > 1.0:
+            self.odomQ.put_nowait((self.xPos, self.yPos))
+            self.timeOdomQ = timeNow
+
+        if not self.gotOdom:
+            self.xOrg = self.xPos
+            self.yOrg = self.yPos
+            self.x.append(self.xPos)
+            self.y.append(self.yPos)
+            self.gotOdom = True
+#        print (self.ns, self.xPos, self.yPos)
 
     def checkTaskProgress(self):
         """checkTaskProgress
@@ -77,6 +95,7 @@ class Robot(robot.Robot):
                     except queue.Empty:
                         break
                     else:
+#                        print (self.index, xNew, yNew)
                         self.x.append(xNew)
                         self.y.append(yNew)
 
@@ -112,6 +131,7 @@ class Robot(robot.Robot):
                     except queue.Empty:
                         break
                     else:
+#                        print (self.index, xNew, yNew)
                         self.x.append(xNew)
                         self.y.append(yNew)
 
@@ -143,11 +163,37 @@ class Robot(robot.Robot):
                 return 2
             else:
                 return 0
-            
-    def startTaskProcess(self, tIndex):
+
+    def allocateTask(self, mbGoal, mbState):
+        """allocateTask
+        Input arguments:
+            mbGoal -> move_base goal as a tuple (x, y)
+        Returns:
+            None
+        Description:
+            allocate the task and call startTaskProcess, if the following constraints are satisfied
+                msgCount > 4*neighbours
+                there is a bid task
+                if there is a current task, it is finished"""
+#        # workaround to avoid single robot situation
+#        if (self.nRobot == 1):
+#            self.msgCount = 4
+
+        if ((self.nTaskBid > self.nTaskAllocated) and (self.msgCount>=4*self.nNeighbour)):
+            tIndex = self.taskBidOrder[self.nTaskBid-1]
+
+            if ((self.taskExec[tIndex] == -1) or (self.taskExec[tIndex] == -4)): # NOAL or EDRP
+                # if no prior allocated tasks or prior task is completed, allocate the new task
+                if ((self.nTaskBid == 1) or
+                    ((self.nTaskBid > 1) and (self.taskExec[self.taskBidOrder[self.nTaskAllocated - 1]] == -2))):
+                    self.startTaskProcess(tIndex, mbGoal, mbState)
+                    print ("robot[%d] navigation started to task [%d]: %d" %(self.index, tIndex, time.time()))
+
+    def startTaskProcess(self, tIndex, mbGoal, mbState):
         """startTaskProcess
         Input arguments:
             tIndex -> index of task being assigned to this robot
+            mbGoal -> move_base goal as a tuple (x, y)
         Returns:
             None
         Description:
@@ -164,10 +210,10 @@ class Robot(robot.Robot):
         self.taskStartTime[self.nTaskBid-1][0] = timeNow
         self.stage = 0
         # creating new process
-        self.taskProcess = multiprocessing.Process(target=self.taskExecution, args=(self.msgQ, self.cmdQ, self.taskList[tIndex], self.x[-1], self.y[-1]))
+        self.taskProcess = multiprocessing.Process(target=self.taskExecution, args=(self.msgQ, self.cmdQ, self.taskList[tIndex], self.x[-1], self.y[-1], mbGoal, mbState, self.odomQ))
         self.taskProcess.start()
 
-    def taskExecution(self, msgQ, cmdQ, currTask, xPrev, yPrev):
+    def taskExecution(self, msgQ, cmdQ, currTask, xPrev, yPrev, mbGoal, mbState, odomQ):
         """taskExecution
         Input arguments:
             msgQ -> message queue back to the main robot process
@@ -175,6 +221,7 @@ class Robot(robot.Robot):
             currTask -> the current task as object
             xPrev -> previous x coordinate
             yPrev -> previous y coordinate
+            mbGoal -> queue object to pass target location for navigation as tuple (x, y)
         Returns:
             None
         Description:
@@ -186,7 +233,7 @@ class Robot(robot.Robot):
         tY = currTask.yOrg
         stage = 0
 
-        (xNew, yNew, taskStat) = self.taskNavigation(msgQ, cmdQ, xPrev, yPrev, tX, tY, stage)
+        (xNew, yNew, taskStat) = self.taskNavigation(msgQ, cmdQ, xPrev, yPrev, tX, tY, stage, mbGoal, mbState, odomQ)
 
         if (taskStat == 1):
             #     => navigation to task location successful
@@ -224,25 +271,25 @@ class Robot(robot.Robot):
             if (taskStat != 2):
                 # actual execution based on the task type
                 if (currTask.taskType == "fall"): # fall detection
-                    taskStat = self.fall(cmdQ, tIndex)
+                    taskStat = self.fall(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
                 elif (currTask.taskType == "delivery"): # food / drink / medicine delivery
-                    (xNew, yNew, taskStat) = self.delivery(msgQ, cmdQ, xPrev, yPrev, tX, tY, tIndex)
+                    (xNew, yNew, taskStat) = self.delivery(msgQ, cmdQ, xPrev, yPrev, tX, tY, tIndex, mbGoal, mbState, odomQ)
 
                 elif (currTask.taskType == "door"): # door opening
-                    taskStat = self.door(cmdQ, tIndex)
+                    taskStat = self.door(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
                 elif (currTask.taskType == "medicine"): # reminder to take medicine
-                    taskStat = self.medicine(cmdQ, tIndex)
+                    taskStat = self.medicine(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
                 elif (currTask.taskType == "clean"): # cleaning the floor area
-                    taskStat = self.clean(cmdQ, tIndex)
+                    taskStat = self.clean(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
                 elif (currTask.taskType == "surveillance"): # surveillance
-                    taskStat = self.surveillance(cmdQ, tIndex)
+                    taskStat = self.surveillance(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
                 else:
-                    taskStat = self.mockTask(cmdQ, tIndex)
+                    taskStat = self.mockTask(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
             # whether taskStat == 1 or 2, send the current msg with the taskStat
             misc.sendMsg(msgQ, None, [xNew, yNew, stage, taskStat])
@@ -255,7 +302,7 @@ class Robot(robot.Robot):
             return taskStat
         return
 
-    def taskNavigation(self, msgQ, cmdQ, xPrev, yPrev, xFinish, yFinish, stage):
+    def taskNavigation(self, msgQ, cmdQ, xPrev, yPrev, xFinish, yFinish, stage, mbGoal, mbState, odomQ):
         """taskNavigation
         Input arguments:
             msgQ -> message queue back to the main robot process
@@ -265,14 +312,12 @@ class Robot(robot.Robot):
             xFinish -> target x coodinate
             yFinish -> target y coordinate
             stage -> current execution stage, to send it back to the main robot process
+            mbGoal -> queue object to pass move_base target locations as tuples (x, y)
         Returns:
             None
         Description:
             method to control the navigation of a robot to the target location"""
-        
-#        self.mbClient = actionlib.SimpleActionClient(self.ns+"/move_base", move_base_msgs.msg.MoveBaseAction)
-        self.mbClient.wait_for_server()
-        rospy.loginfo("%s has movebase client ready", self.ns)
+
         # task is allocated and the robot has to travel to the task location
         # robot moves in the direction of the task from the current location
         # keep on track: regularly check the position and orientation with respect to the task location
@@ -291,7 +336,7 @@ class Robot(robot.Robot):
 
         xNew, yNew = xPrev+0, yPrev+0
 
-        taskFinish = self.checkTaskFinish(xNew, yNew, xFinish, yFinish, taskZone) # check task finish status: 1-finished; 0-still running
+        taskFinish = self.checkTaskFinish(xNew, yNew, xFinish, yFinish, taskZone, mbState) # check task finish status: 1-finished; 0-still running
 
         misc.sendMsg(msgQ, None, [xNew, yNew, stage, taskFinish])
         prevMsg = [] + [xNew, yNew, stage, taskFinish]
@@ -326,29 +371,26 @@ class Robot(robot.Robot):
                 time.sleep(0.1)
 #                rospy.loginfo ("%s here: tf- %d, gs - %s" %(self.index, taskFinish, self.goalSent))
                 if not self.goalSent:
-                    goal = move_base_msgs.msg.MoveBaseGoal()
-                    goal.target_pose.header.frame_id = "map"
-                    goal.target_pose.pose.position.x = tX
-                    goal.target_pose.pose.position.y = tY
-                    goal.target_pose.pose.orientation.w = 1
-                    rospy.loginfo("sending goal now for %s", self.ns)
-                    rospy.loginfo(goal)
-                    self.mbClient.send_goal(goal, done_cb=self.doneCB)
+                    goal = ("goal", tX, tY)
+                    mbGoal.put_nowait(goal)
                     time.sleep(0.1)
                     self.goalSent = True
-                
-                self.pub.publish("chatter %d" %(random.randint(1,10)))
+
                 time.sleep(0.5)
 
-                xNew = self.xPos
-                yNew = self.yPos
+                # odom updates do not reach the subprocesses. receive it using a queue
+                while (True):
+                    try:
+                        (xNew, yNew) = odomQ.get_nowait()
+                    except queue.Empty:
+                        break
+                    else:
+                        if (prevMsg != [xNew, yNew, stage, taskFinish]):
+                            # send current coordination back
+                            misc.sendMsg(msgQ, None, [xNew, yNew, stage, taskFinish])
+                            prevMsg = [] + [xNew, yNew, stage, taskFinish]
 
-                if (prevMsg != [xNew, yNew, stage, taskFinish]):
-                    # send current coordination back
-                    misc.sendMsg(msgQ, None, [xNew, yNew, stage, taskFinish])
-                    prevMsg = [] + [xNew, yNew, stage, taskFinish]
-
-                taskFinish = self.checkTaskFinish(xNew, yNew, tX, tY, taskZone) # check task finish status
+                taskFinish = self.checkTaskFinish(xNew, yNew, tX, tY, taskZone, mbState) # check task finish status
                 if (taskFinish == 1):
                     xyPath.pop(0)
                     break
@@ -386,7 +428,9 @@ class Robot(robot.Robot):
         elif (taskFinish == 2):
             #     => task has been stopped by command
             #     return the status
-            self.mbClient.cancel_all_goals()
+            goal = ("cancel", 0.0, 0.0)
+            mbGoal.put_nowait(goal)
+            time.sleep(0.1)
             misc.sendMsg(msgQ, None, [xPrev, yPrev, stage, 0])
             return (xNew, yNew, taskFinish)
 
@@ -411,14 +455,20 @@ class Robot(robot.Robot):
                     if not(self.taskProcess.is_alive()):
                         break
 
-    def checkTaskFinish(self, rX, rY, tX, tY, taskZone):
+    def checkTaskFinish(self, rX, rY, tX, tY, taskZone, mbState):
         """ checks whether the robot has reached E-near the task location"""
+        if not mbState.empty():
+            state = mbState.get_nowait()
+            print (state)
+            if state == "SUCCEEDED":
+                self.mbFinished = True
+
         if self.goalSent and self.mbFinished:
             self.mbFinished = False
             return 1
         else:
             return 0
-#        
+#
 #        dist = misc.getDist(rX, rY, tX, tY)
 #        if (misc.lt(dist, taskZone)):
 #        #if (dist < self.taskZone):
@@ -440,43 +490,43 @@ class Robot(robot.Robot):
         self.taskProcess.start()
         print ("robot[%d] started navigation to (%0.2f, %0.2f)" %(self.index, x, y))
 
-    def delivery(self, msgQ, cmdQ, xPrev, yPrev, tX, tY, tIndex):
+    def delivery(self, msgQ, cmdQ, xPrev, yPrev, tX, tY, tIndex, mbGoal, mbState, odomQ):
         stage = 1
         xNew = xPrev + 0
         yNew = yPrev + 0
         currTask = self.taskList[tIndex]
         # pick the object
-        taskStat = self.mockTask(cmdQ, tIndex)
+        taskStat = self.mockTask(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
         if (taskStat != 2):
             # move to target location
             if (not misc.eq(currTask.xOrg, currTask.xFinish) or not misc.eq(currTask.yOrg, currTask.yFinish)):
                 tX = currTask.xFinish
                 tY = currTask.yFinish
-                (xNew, yNew, taskStat) = self.taskNavigation(msgQ, cmdQ, xPrev, yPrev, tX, tY, stage)
+                (xNew, yNew, taskStat) = self.taskNavigation(msgQ, cmdQ, xPrev, yPrev, tX, tY, stage, mbGoal, mbState, odomQ)
 
         if (taskStat != 2):
             # drop the object
-            taskStat = self.mockTask(cmdQ, tIndex)
+            taskStat = self.mockTask(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
         return (xNew, yNew, taskStat)
 
-    def fall(self, cmdQ, tIndex):
-        return self.mockTask(cmdQ, tIndex)
+    def fall(self, cmdQ, tIndex, mbGoal, mbState, odomQ):
+        return self.mockTask(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
-    def door(self, cmdQ, tIndex):
-        return self.mockTask(cmdQ, tIndex)
+    def door(self, cmdQ, tIndex, mbGoal, mbState, odomQ):
+        return self.mockTask(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
-    def surveillance(self, cmdQ, tIndex):
-        return self.mockTask(cmdQ, tIndex)
+    def surveillance(self, cmdQ, tIndex, mbGoal, mbState, odomQ):
+        return self.mockTask(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
-    def medicine(self, cmdQ, tIndex):
-        return self.mockTask(cmdQ, tIndex)
+    def medicine(self, cmdQ, tIndex, mbGoal, mbState, odomQ):
+        return self.mockTask(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
-    def clean(self, cmdQ, tIndex):
-        return self.mockTask(cmdQ, tIndex)
+    def clean(self, cmdQ, tIndex, mbGoal, mbState, odomQ):
+        return self.mockTask(cmdQ, tIndex, mbGoal, mbState, odomQ)
 
-    def mockTask(self, cmdQ, tIndex):
+    def mockTask(self, cmdQ, tIndex, mbGoal, mbState, odomQ):
         currTask = self.taskList[tIndex]
         taskStat = 1
         timeNow = time.time()
