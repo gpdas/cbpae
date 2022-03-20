@@ -57,7 +57,7 @@ class Cbpae():
 
         self.version = VERSION
         self.logs = logsDir
-        self.fNameSmall = fName.split("/")[-1].split("\\")[-1]
+        self.fNameSmall = fName.split("/")[-1].split("\\")[-1].split(".txt")[0]
 
         self.nRobot = 0  # number of robots
         self.nTask = 0  # number of tasks
@@ -1021,7 +1021,7 @@ class Cbpae():
         """"read all logs. merge them to a single one. plot all data in single plot"""
         print (">>> plotting data")
 
-        fNameSmall = fName.split("/")[-1].split("\\")[-1]
+        fNameSmall = fName.split("/")[-1].split("\\")[-1].split(".txt")[0]
 
         class Robot():
             def __init__(self, xOrg, yOrg):

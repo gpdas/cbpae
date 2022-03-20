@@ -33,6 +33,8 @@ import os
 from config import *
 import string
 
+VERSION = "6.00.00"
+
 class Robot():
     def __init__(self, xOrg, yOrg):
         self.xOrg     = 0.0 + xOrg
@@ -49,7 +51,7 @@ def readData(filePrefix, dataDir):
     robotList     = []
     taskList     = []
     print ("reading data")
-    fName         = open(dataDir + filePrefix + "inData.dat", "r")
+    fName         = open(dataDir + filePrefix + ".txt", "r")
     for i in (range (2)):
         fName.readline()
     fData     = fName.readline().strip().split(",")
@@ -312,7 +314,7 @@ if (__name__ == "__main__"):
                     for rType in (rTypes):
                         for prio in (prios):
                             for start in (starts):
-                                fname = "%d_%d_%s_%s_%s_%s_" %(nR, nT, env, rType, prio, start)
+                                fname = "%d_%d_%s_%s_%s_%s" %(nR, nT, env, rType, prio, start)
                                 dataDir ="../data/"
                                 logsDir ="../logs/set %d/" %(setNum)
                                 plotsDir ="../plots/set %d/" %(setNum)
