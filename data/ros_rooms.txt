@@ -2,7 +2,7 @@
 # no. of rooms, no. of nodes
 5, 10
 # workspace boundary: xMin, xmax, yMin, yMax
-0.0, 10.0, 0.0, 10.0
+-10.0, 10.0, -10.0, 10.0
 # room boundary: roomID, xMin, xmax, yMin, yMax
 0, 0.0, 5.0, 6.0, 10.0
 1, 5.0, 10.0, 6.0, 10.0
@@ -39,8 +39,8 @@ true
 # do task
 true
 # robot: rId, xOrg, yOrg, aOrg, taskLimit, onTime, offTime, hostIP, port, nSkills, sNavigation, eNavigation, sVision, eVision, sAudition, eAudition, sGripper, eGripper, sCleaner, eCleaner, sManipulator, eManipulator, rtype
-0, 4.20, 0.30, 180.0, 20 , 0.0 , inf, localhost, 6666, 4, navigation, 0.700,  cleaner, 0.800,  vision, 0.800,  audition, 0.800, abstract
-1, 6.30, 2.40, 270.0, 20 , 0.0 , inf, localhost, 6667, 4, navigation, 0.700,  cleaner, 0.800,  vision, 0.800,  audition, 0.800, abstract
+0, 0.00, 0.00, 0.0, 20 , 0.0 , inf, localhost, 6666, 4, navigation, 0.700,  cleaner, 0.800,  vision, 0.800,  audition, 0.800, ros
+1, 0.00, 1.00, 0.0, 20 , 0.0 , inf, localhost, 6667, 4, navigation, 0.700,  cleaner, 0.800,  vision, 0.800,  audition, 0.800, ros
 ## task info:
 # no of tasks
 15 

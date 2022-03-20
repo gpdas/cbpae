@@ -459,7 +459,7 @@ class Robot(robot.Robot):
         """ checks whether the robot has reached E-near the task location"""
         if not mbState.empty():
             state = mbState.get_nowait()
-            print (state)
+#            print (state)
             if state == "SUCCEEDED":
                 self.mbFinished = True
 
